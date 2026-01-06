@@ -1,0 +1,1 @@
+# S75-0126-EndPoint-Full-stack-with-Nextjs-PostgreSQL-Prisma-Redis-Docker-AWS-Azure-GitHub-Actions
