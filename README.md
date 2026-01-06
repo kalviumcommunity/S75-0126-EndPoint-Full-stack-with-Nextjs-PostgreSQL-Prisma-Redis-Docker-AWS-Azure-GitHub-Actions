@@ -26,7 +26,7 @@ To build a **low-friction digital trust platform** that enables local businesses
 * Customer reviews
 * Activity-based trust scoring
 
-This creates a trusted digital presence that customers can easily verify and share.
+
 
 ---
 
@@ -70,8 +70,6 @@ This creates a trusted digital presence that customers can easily verify and sha
 * **Docker** (Containerization)
 * **GitHub Actions** (CI/CD)
 * **AWS / Azure** (Cloud deployment)
-
-
 
 
 ## 6. 4-Week Sprint Plan
