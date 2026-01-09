@@ -107,8 +107,44 @@ To build a **low-friction digital trust platform** that enables local businesses
 * Public and shareable business profile
 * Fully deployed and functional application
 
+
+
+## Environment Variables Management
+
 This project uses environment variables to manage configuration securely.
 The .env.local file stores sensitive values such as database credentials and is ignored by Git, while .env.example is committed as a template for required variables.
 
 Server-side secrets like DATABASE_URL are used only in backend code, and only variables prefixed with NEXT_PUBLIC_ are accessible on the client.
 To replicate the setup, copy .env.example to .env.local, fill in the required values, and run the project normally.
+
+
+## Branching Strategy & Naming Conventions for DigitalCred
+
+**How this helps:**
+This workflow ensures consistent code quality through reviews and automated checks.
+It improves team collaboration by enforcing clear processes and shared standards.
+It increases development velocity by reducing errors, rework, and merge conflicts.
+
+**Consistent pattern for your team’s branches:**
+
+**feature/<feature-name>** - New features or enhancements.
+
+**errorfix/<issue-description>** - Bug fixes.
+
+**task/<task-name>** - Specific tasks or chores.
+
+**guide/<documentation-topic>** - Documentation updates.
+
+
+Example : 
+* feature/user-authentication
+* errorfix/login-issue  
+* task/setup-docker
+* guide/api-documentation
+
+## Pull Request Template
+
+In digital/.github/pull_request_template.md
+
+
+
