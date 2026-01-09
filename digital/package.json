@@ -10,7 +10,10 @@
     "prepare": "husky install"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": ["eslint --fix", "prettier --write"]
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "next": "16.1.1",
@@ -20,8 +23,8 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.1",
     "eslint-config-prettier": "^10.1.8",
