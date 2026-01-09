@@ -147,4 +147,100 @@ Example :
 In digital/.github/pull_request_template.md
 
 
+## PostgreSQL Schema Design (Supabase)
+**Overview**
 
+This project focuses on designing a normalized relational database schema using PostgreSQL on Supabase.
+The schema supports user authentication via OTP and business signup information, while ensuring data integrity, scalability, and efficient querying.
+
+ER Diagram (Textual Representation)
+users
+-----
+id (PK)
+phone (UNIQUE)
+is_verified
+created_at
+
+   |
+   | 1-to-1
+   |
+signup
+------
+id (PK)
+user_id (FK → users.id)
+business_name
+category
+area
+created_at
+
+
+otp
+---
+id (PK)
+phone
+otp
+expires_at
+created_at
+
+Database Tables & Schema
+**1.users Table**
+
+Stores registered user details.
+
+Primary Key: id (UUID)
+
+Constraints:
+
+phone is UNIQUE and NOT NULL
+
+is_verified defaults to false
+
+This table uniquely identifies each user and avoids duplicate phone numbers.
+
+**2.otp Table**
+
+Stores one-time passwords for verification.
+
+Primary Key: id (UUID)
+
+Constraints:
+
+otp and expires_at are NOT NULL
+
+This table is kept separate to avoid redundancy and to support secure, time-based OTP validation.
+
+**3.signup Table**
+
+Stores business-related details of users.
+
+Primary Key: id (UUID)
+
+Foreign Key: user_id → users.id
+
+Constraint: ON DELETE CASCADE
+
+Each signup record is linked to exactly one user, ensuring referential integrity.
+
+**Keys, Constraints & Relationships**
+
+Primary Keys (PK): Used in all tables to uniquely identify records
+
+Foreign Key (FK): signup.user_id references users.id
+
+ON DELETE CASCADE: Ensures no orphan records exist
+
+UNIQUE Constraint: Enforced on phone numbers
+
+**Relationship:**
+
+One User → One Signup
+
+**Normalization**
+
+1NF: All fields contain atomic values
+
+2NF: No partial dependency on composite keys
+
+3NF: No redundant or derived data stored
+
+This design avoids duplication and improves maintainability.
