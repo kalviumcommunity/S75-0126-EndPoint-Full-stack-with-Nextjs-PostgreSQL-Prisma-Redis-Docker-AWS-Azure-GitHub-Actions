@@ -106,3 +106,9 @@ To build a **low-friction digital trust platform** that enables local businesses
 * Trust score updates dynamically based on activity
 * Public and shareable business profile
 * Fully deployed and functional application
+
+This project uses environment variables to manage configuration securely.
+The .env.local file stores sensitive values such as database credentials and is ignored by Git, while .env.example is committed as a template for required variables.
+
+Server-side secrets like DATABASE_URL are used only in backend code, and only variables prefixed with NEXT_PUBLIC_ are accessible on the client.
+To replicate the setup, copy .env.example to .env.local, fill in the required values, and run the project normally.
