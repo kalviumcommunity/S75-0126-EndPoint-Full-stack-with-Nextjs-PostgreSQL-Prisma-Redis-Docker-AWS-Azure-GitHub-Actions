@@ -244,3 +244,98 @@ One User → One Signup
 3NF: No redundant or derived data stored
 
 This design avoids duplication and improves maintainability.
+
+
+## API Route structure and naming
+
+### API Route Hierarchy
+
+- `/api/users` - User management endpoints
+  - `GET /api/users` - Get all users with pagination
+  - `POST /api/users` - Create a new user
+  - `PUT /api/users/:id` - Update a user by ID
+  - `DELETE /api/users/:id` - Delete a user by ID
+
+- `/api/businesses` - Business management endpoints
+  - `GET /api/businesses` - Get all businesses with pagination
+  - `POST /api/businesses` - Create a new business
+  - `PUT /api/businesses/:id` - Update a business by ID
+  - `DELETE /api/businesses/:id` - Delete a business by ID
+
+- `/api/signup` - User signup endpoints
+  - `GET /api/signup` - Get all signups with pagination
+  - `POST /api/signup` - Create a new signup
+  - `PUT /api/signup/:id` - Update a signup by ID
+  - `DELETE /api/signup/:id` - Delete a signup by ID
+
+- `/api/otp` - OTP management endpoints
+  - `POST /api/otp` - Create a new OTP
+  - `POST /api/otp/verify` - Verify an OTP
+
+### HTTP Verbs and Resource Actions
+
+| HTTP Verb | Purpose             | Example Route           | Description              |
+|-----------|---------------------|-------------------------|--------------------------|
+| GET       | Read data           | `/api/users`            | Get all users            |
+| POST      | Create data         | `/api/users`            | Create a new user        |
+| PUT       | Update data         | `/api/users/:id`        | Update a user            |
+| DELETE    | Remove data         | `/api/users/:id`        | Delete a user            |
+
+### Sample Requests & Responses
+
+**Get all users with pagination:**
+```bash
+curl -X GET http://localhost:3000/api/users?page=1&limit=10
+```
+
+**Create a new user:**
+
+curl -X POST http://localhost:3000/api/users \\
+  -H "Content-Type: application/json" \\
+  -d '{"phone":"+1234567890"}'
+```
+
+**Update a user:**
+```bash
+curl -X PUT http://localhost:3000/api/users/1 \\
+  -H "Content-Type: application/json" \\
+  -d '{"phone":"+0987654321"}'
+```
+
+**Delete a user:**
+```bash
+curl -X DELETE http://localhost:3000/api/users/1
+```
+
+### Pagination
+
+All GET requests that return large lists support pagination:
+- `page` - Page number (default: 1)
+- `limit` - Items per page (default: 10, max: 100)
+
+Example: `/api/users?page=2&limit=20`
+
+### Error Handling
+
+The API returns appropriate HTTP status codes:
+
+| Code | Meaning                   | Usage                             |
+|------|---------------------------|-----------------------------------|
+| 200  | OK                        | Successful GET                    |
+| 201  | Created                   | POST success                      |
+| 400  | Bad Request               | Invalid input                     |
+| 404  | Not Found                 | Resource missing                  |
+| 409  | Conflict                  | Resource already exists           |
+| 500  | Internal Server Error     | Unexpected issue                  |
+
+### Consistent Naming Benefits
+
+Consistent naming improves maintainability and reduces integration errors by:
+
+1. Making the API intuitive and predictable
+2. Following RESTful conventions
+3. Using plural nouns for resource collections
+4. Maintaining uniform structure across all endpoints
+5. Providing clear documentation for developers
+
+
