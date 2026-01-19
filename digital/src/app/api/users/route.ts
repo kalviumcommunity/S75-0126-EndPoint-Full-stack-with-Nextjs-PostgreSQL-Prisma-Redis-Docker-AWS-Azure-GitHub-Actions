@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sendSuccess, sendError } from '@/lib/responseHandler';
+import { ERROR_CODES } from '@/lib/errorCodes';
 
 // Mock data for demonstration
 let users = [
@@ -21,9 +23,10 @@ export async function GET(request: NextRequest) {
 
     // Validate pagination parameters
     if (isNaN(page) || isNaN(limit) || page < 1 || limit < 1 || limit > 100) {
-      return NextResponse.json(
-        { error: 'Invalid pagination parameters. Page and limit must be positive integers, limit max 100.' },
-        { status: 400 }
+      return sendError(
+        'Invalid pagination parameters. Page and limit must be positive integers, limit max 100.',
+        ERROR_CODES.VALIDATION_ERROR,
+        400
       );
     }
 
@@ -32,7 +35,7 @@ export async function GET(request: NextRequest) {
     const totalCount = users.length;
     const totalPages = Math.ceil(totalCount / limit);
 
-    return NextResponse.json({
+    return sendSuccess({
       data: paginatedUsers,
       pagination: {
         currentPage: page,
@@ -41,12 +44,13 @@ export async function GET(request: NextRequest) {
         hasNext: page < totalPages,
         hasPrev: page > 1,
       },
-    });
+    }, 'Users fetched successfully');
   } catch (error) {
     console.error('Error fetching users:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
@@ -58,18 +62,20 @@ export async function POST(request: NextRequest) {
     
     // Validation
     if (!body.phone) {
-      return NextResponse.json(
-        { error: 'Phone number is required' },
-        { status: 400 }
+      return sendError(
+        'Phone number is required',
+        ERROR_CODES.VALIDATION_ERROR,
+        400
       );
     }
 
     // Check if user already exists
     const existingUser = users.find(user => user.phone === body.phone);
     if (existingUser) {
-      return NextResponse.json(
-        { error: 'User with this phone number already exists' },
-        { status: 409 }
+      return sendError(
+        'User with this phone number already exists',
+        ERROR_CODES.CONFLICT_ERROR,
+        409
       );
     }
 
@@ -83,15 +89,17 @@ export async function POST(request: NextRequest) {
 
     users.push(newUser);
 
-    return NextResponse.json(
-      { message: 'User created successfully', data: newUser },
-      { status: 201 }
+    return sendSuccess(
+      { data: newUser },
+      'User created successfully',
+      201
     );
   } catch (error) {
     console.error('Error creating user:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
@@ -108,9 +116,10 @@ export async function PUT(request: NextRequest) {
     // Find user by ID
     const userIndex = users.findIndex(user => user.id === id);
     if (userIndex === -1) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+      return sendError(
+        'User not found',
+        ERROR_CODES.NOT_FOUND,
+        404
       );
     }
 
@@ -122,15 +131,16 @@ export async function PUT(request: NextRequest) {
       created_at: users[userIndex].created_at, // Preserve creation date
     };
 
-    return NextResponse.json({
-      message: 'User updated successfully',
-      data: users[userIndex],
-    });
+    return sendSuccess(
+      { data: users[userIndex] },
+      'User updated successfully'
+    );
   } catch (error) {
     console.error('Error updating user:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
@@ -146,20 +156,23 @@ export async function DELETE(request: NextRequest) {
     users = users.filter(user => user.id !== id);
     
     if (users.length === initialLength) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+      return sendError(
+        'User not found',
+        ERROR_CODES.NOT_FOUND,
+        404
       );
     }
 
-    return NextResponse.json({
-      message: 'User deleted successfully',
-    });
+    return sendSuccess(
+      {},
+      'User deleted successfully'
+    );
   } catch (error) {
     console.error('Error deleting user:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }

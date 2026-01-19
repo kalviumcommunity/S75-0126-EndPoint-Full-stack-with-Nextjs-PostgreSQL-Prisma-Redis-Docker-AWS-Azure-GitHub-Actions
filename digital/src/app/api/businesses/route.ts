@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sendSuccess, sendError } from '@/lib/responseHandler';
+import { ERROR_CODES } from '@/lib/errorCodes';
 
 // Mock data for demonstration
 let businesses = [
@@ -21,9 +23,10 @@ export async function GET(request: NextRequest) {
 
     // Validate pagination parameters
     if (isNaN(page) || isNaN(limit) || page < 1 || limit < 1 || limit > 100) {
-      return NextResponse.json(
-        { error: 'Invalid pagination parameters. Page and limit must be positive integers, limit max 100.' },
-        { status: 400 }
+      return sendError(
+        'Invalid pagination parameters. Page and limit must be positive integers, limit max 100.',
+        ERROR_CODES.VALIDATION_ERROR,
+        400
       );
     }
 
@@ -32,7 +35,7 @@ export async function GET(request: NextRequest) {
     const totalCount = businesses.length;
     const totalPages = Math.ceil(totalCount / limit);
 
-    return NextResponse.json({
+    return sendSuccess({
       data: paginatedBusinesses,
       pagination: {
         currentPage: page,
@@ -41,12 +44,13 @@ export async function GET(request: NextRequest) {
         hasNext: page < totalPages,
         hasPrev: page > 1,
       },
-    });
+    }, 'Businesses fetched successfully');
   } catch (error) {
     console.error('Error fetching businesses:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
@@ -58,18 +62,20 @@ export async function POST(request: NextRequest) {
     
     // Validation
     if (!body.name || !body.email) {
-      return NextResponse.json(
-        { error: 'Business name and email are required' },
-        { status: 400 }
+      return sendError(
+        'Business name and email are required',
+        ERROR_CODES.VALIDATION_ERROR,
+        400
       );
     }
 
     // Check if business already exists
     const existingBusiness = businesses.find(business => business.email === body.email);
     if (existingBusiness) {
-      return NextResponse.json(
-        { error: 'Business with this email already exists' },
-        { status: 409 }
+      return sendError(
+        'Business with this email already exists',
+        ERROR_CODES.CONFLICT_ERROR,
+        409
       );
     }
 
@@ -85,15 +91,17 @@ export async function POST(request: NextRequest) {
 
     businesses.push(newBusiness);
 
-    return NextResponse.json(
-      { message: 'Business created successfully', data: newBusiness },
-      { status: 201 }
+    return sendSuccess(
+      { data: newBusiness },
+      'Business created successfully',
+      201
     );
   } catch (error) {
     console.error('Error creating business:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
@@ -110,9 +118,10 @@ export async function PUT(request: NextRequest) {
     // Find business by ID
     const businessIndex = businesses.findIndex(business => business.id === id);
     if (businessIndex === -1) {
-      return NextResponse.json(
-        { error: 'Business not found' },
-        { status: 404 }
+      return sendError(
+        'Business not found',
+        ERROR_CODES.NOT_FOUND,
+        404
       );
     }
 
@@ -124,15 +133,16 @@ export async function PUT(request: NextRequest) {
       created_at: businesses[businessIndex].created_at, // Preserve creation date
     };
 
-    return NextResponse.json({
-      message: 'Business updated successfully',
-      data: businesses[businessIndex],
-    });
+    return sendSuccess(
+      { data: businesses[businessIndex] },
+      'Business updated successfully'
+    );
   } catch (error) {
     console.error('Error updating business:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
@@ -148,20 +158,23 @@ export async function DELETE(request: NextRequest) {
     businesses = businesses.filter(business => business.id !== id);
     
     if (businesses.length === initialLength) {
-      return NextResponse.json(
-        { error: 'Business not found' },
-        { status: 404 }
+      return sendError(
+        'Business not found',
+        ERROR_CODES.NOT_FOUND,
+        404
       );
     }
 
-    return NextResponse.json({
-      message: 'Business deleted successfully',
-    });
+    return sendSuccess(
+      {},
+      'Business deleted successfully'
+    );
   } catch (error) {
     console.error('Error deleting business:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
