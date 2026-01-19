@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sendSuccess, sendError } from '@/lib/responseHandler';
+import { ERROR_CODES } from '@/lib/errorCodes';
 
 // Define TypeScript interfaces
 interface User {
@@ -32,9 +34,10 @@ export async function GET(request: NextRequest) {
 
     // Validate pagination parameters
     if (isNaN(page) || isNaN(limit) || page < 1 || limit < 1 || limit > 100) {
-      return NextResponse.json(
-        { error: 'Invalid pagination parameters. Page and limit must be positive integers, limit max 100.' },
-        { status: 400 }
+      return sendError(
+        'Invalid pagination parameters. Page and limit must be positive integers, limit max 100.',
+        ERROR_CODES.VALIDATION_ERROR,
+        400
       );
     }
 
@@ -43,7 +46,7 @@ export async function GET(request: NextRequest) {
     const totalCount = users.length;
     const totalPages = Math.ceil(totalCount / limit);
 
-    return NextResponse.json({
+    return sendSuccess({
       data: paginatedUsers,
       pagination: {
         currentPage: page,
@@ -52,12 +55,13 @@ export async function GET(request: NextRequest) {
         hasNext: page < totalPages,
         hasPrev: page > 1,
       },
-    });
+    }, 'Signups fetched successfully');
   } catch (error) {
     console.error('Error fetching signups:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
@@ -69,25 +73,28 @@ export async function POST(request: NextRequest) {
     
     // Validation
     if (!body.email && !body.phone) {
-      return NextResponse.json(
-        { error: 'Either email or phone number is required' },
-        { status: 400 }
+      return sendError(
+        'Either email or phone number is required',
+        ERROR_CODES.VALIDATION_ERROR,
+        400
       );
     }
 
     if (!body.password) {
-      return NextResponse.json(
-        { error: 'Password is required' },
-        { status: 400 }
+      return sendError(
+        'Password is required',
+        ERROR_CODES.VALIDATION_ERROR,
+        400
       );
     }
 
     // Check if user already exists
     const existingUser = users.find(user => user.email === body.email || user.phone === body.phone);
     if (existingUser) {
-      return NextResponse.json(
-        { error: 'User with this email or phone number already exists' },
-        { status: 409 }
+      return sendError(
+        'User with this email or phone number already exists',
+        ERROR_CODES.CONFLICT_ERROR,
+        409
       );
     }
 
@@ -107,15 +114,17 @@ export async function POST(request: NextRequest) {
     // Don't return the password in the response
     const { password, ...userWithoutPassword } = newUser;
 
-    return NextResponse.json(
-      { message: 'Signup successful', data: userWithoutPassword },
-      { status: 201 }
+    return sendSuccess(
+      { data: userWithoutPassword },
+      'Signup successful',
+      201
     );
   } catch (error) {
     console.error('Error creating signup:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
@@ -132,9 +141,10 @@ export async function PUT(request: NextRequest) {
     // Find user by ID
     const userIndex = users.findIndex(user => user.id === id);
     if (userIndex === -1) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+      return sendError(
+        'User not found',
+        ERROR_CODES.NOT_FOUND,
+        404
       );
     }
 
@@ -150,15 +160,16 @@ export async function PUT(request: NextRequest) {
     // Don't return the password in the response
     const { password, ...userWithoutPassword } = users[userIndex];
 
-    return NextResponse.json({
-      message: 'Signup updated successfully',
-      data: userWithoutPassword,
-    });
+    return sendSuccess(
+      { data: userWithoutPassword },
+      'Signup updated successfully'
+    );
   } catch (error) {
     console.error('Error updating signup:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
@@ -174,20 +185,23 @@ export async function DELETE(request: NextRequest) {
     users = users.filter(user => user.id !== id);
     
     if (users.length === initialLength) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+      return sendError(
+        'User not found',
+        ERROR_CODES.NOT_FOUND,
+        404
       );
     }
 
-    return NextResponse.json({
-      message: 'Signup deleted successfully',
-    });
+    return sendSuccess(
+      {},
+      'Signup deleted successfully'
+    );
   } catch (error) {
     console.error('Error deleting signup:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
     );
   }
 }
