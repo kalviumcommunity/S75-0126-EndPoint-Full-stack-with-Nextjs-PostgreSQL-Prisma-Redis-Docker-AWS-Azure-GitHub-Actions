@@ -54,6 +54,10 @@ This application includes several RESTful API endpoints under the `/api/` route:
   - `GET /api` - Simple API test endpoint
   - `POST /api` - Simple API test endpoint
 
+- `/api/auth` - Authentication endpoints
+  - `POST /api/auth/signup` - Register new user
+  - `POST /api/auth/login` - Login and get JWT token
+
 ### HTTP Verbs and Resource Actions
 
 | HTTP Verb | Purpose             | Example Route           | Description              |
@@ -107,9 +111,81 @@ The API returns appropriate HTTP status codes:
 | 200  | OK                        | Successful GET                      |
 | 201  | Created                   | POST success                      |
 | 400  | Bad Request               | Invalid input                     |
+| 401  | Unauthorized              | Token missing                     |
+| 403  | Forbidden                 | Invalid/expired token             |
 | 404  | Not Found                 | Resource missing                  |
 | 409  | Conflict                  | Resource already exists           |
 | 500  | Internal Server Error     | Unexpected issue                  |
+
+## Authentication System
+
+### Flow
+1. **Signup** → User registers → Password hashed with bcrypt (10 salt rounds)
+2. **Login** → Credentials verified → JWT token generated (1-hour expiry)
+3. **Protected Routes** → Token validated → Access granted/denied
+
+### API Examples
+
+**Signup:**
+```bash
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice","email":"alice@example.com","password":"mypassword"}'
+```
+Response:
+```json
+{"success":true,"message":"Signup successful","user":{"id":"...","email":"alice@example.com"}}
+```
+
+**Login:**
+```bash
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"mypassword"}'
+```
+Response:
+```json
+{"success":true,"message":"Login successful","token":"eyJhbGci..."}
+```
+
+**Access Protected Route:**
+```bash
+curl -X GET http://localhost:3000/api/users \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+Response:
+```json
+{"success":true,"message":"Protected data","user":{"id":"...","email":"..."}}
+```
+
+### Security Details
+
+**Password Hashing:**
+- Algorithm: bcrypt
+- Salt rounds: 10
+- Passwords never stored in plain text
+
+**JWT Token:**
+- Algorithm: HS256
+- Expiry: 1 hour
+- Payload: `{id, email, iat, exp}`
+
+### Token Management
+
+| Strategy | Storage | Pros | Cons |
+|----------|---------|------|------|
+| **localStorage** | Browser storage | Simple, persists across tabs | XSS vulnerable |
+| **Cookies (HttpOnly)** | Server-set cookies | XSS protected | CSRF vulnerable (needs protection) |
+| **Refresh Token** | Separate long-lived token | Better UX, secure | More complex |
+
+**Recommendation:** Use HttpOnly cookies + refresh tokens for production.
+
+### Test Results
+✅ Signup: User created with hashed password  
+✅ Login: JWT token generated successfully  
+✅ Protected route with valid token: Access granted  
+✅ Protected route without token: 401 Unauthorized  
+✅ Protected route with invalid token: 403 Forbidden
 
 ## Consistent Naming Benefits
 
