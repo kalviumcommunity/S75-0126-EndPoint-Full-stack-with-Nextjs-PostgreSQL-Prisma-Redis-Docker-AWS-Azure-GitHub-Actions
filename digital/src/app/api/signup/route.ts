@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendSuccess, sendError } from '@/lib/responseHandler';
-import { ERROR_CODES } from '@/lib/errorCodes';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
+import { signupSchema } from '../../../lib/schemas/userSchema';
+import { ZodError } from 'zod';
 
 // Define TypeScript interfaces
 interface User {
@@ -71,54 +73,55 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Validation
-    if (!body.email && !body.phone) {
-      return sendError(
-        'Either email or phone number is required',
-        ERROR_CODES.VALIDATION_ERROR,
-        400
+    // Zod validation
+    try {
+      const validatedData = signupSchema.parse(body);
+      
+      // Check if user already exists
+      const existingUser = users.find(user => user.email === validatedData.email || user.phone === validatedData.phone);
+      if (existingUser) {
+        return sendError(
+          'User with this email or phone number already exists',
+          ERROR_CODES.CONFLICT_ERROR,
+          409
+        );
+      }
+
+      // Create new user
+      const newUser: User = {
+        id: generateId(),
+        phone: validatedData.phone,
+        email: validatedData.email,
+        name: validatedData.name,
+        password: validatedData.password, // In a real app, this should be hashed
+        is_verified: false, // New signups are not verified initially
+        created_at: new Date().toISOString(),
+      };
+
+      users.push(newUser);
+
+      // Don't return the password in the response
+      const { password, ...userWithoutPassword } = newUser;
+
+      return sendSuccess(
+        { data: userWithoutPassword },
+        'Signup successful',
+        201
       );
+    } catch (validationError) {
+      if (validationError instanceof ZodError) {
+        return sendError(
+          'Validation failed',
+          ERROR_CODES.VALIDATION_ERROR,
+          400,
+          validationError.issues.map((err) => ({
+            field: err.path.join('.'),
+            message: err.message,
+          }))
+        );
+      }
+      throw validationError;
     }
-
-    if (!body.password) {
-      return sendError(
-        'Password is required',
-        ERROR_CODES.VALIDATION_ERROR,
-        400
-      );
-    }
-
-    // Check if user already exists
-    const existingUser = users.find(user => user.email === body.email || user.phone === body.phone);
-    if (existingUser) {
-      return sendError(
-        'User with this email or phone number already exists',
-        ERROR_CODES.CONFLICT_ERROR,
-        409
-      );
-    }
-
-    // Create new user
-    const newUser: User = {
-      id: generateId(),
-      phone: body.phone,
-      email: body.email,
-      name: body.name,
-      password: body.password, // In a real app, this should be hashed
-      is_verified: false, // New signups are not verified initially
-      created_at: new Date().toISOString(),
-    };
-
-    users.push(newUser);
-
-    // Don't return the password in the response
-    const { password, ...userWithoutPassword } = newUser;
-
-    return sendSuccess(
-      { data: userWithoutPassword },
-      'Signup successful',
-      201
-    );
   } catch (error) {
     console.error('Error creating signup:', error);
     return sendError(
@@ -148,22 +151,40 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Update user
-    users[userIndex] = {
-      ...users[userIndex],
-      ...body,
-      id: users[userIndex].id, // Preserve the ID
-      created_at: users[userIndex].created_at, // Preserve creation date
-      password: body.password || users[userIndex].password, // Only update password if provided
-    };
+    // Zod validation for update - only validate fields that are present in the update
+    try {
+      const validatedData = signupSchema.partial().parse(body); // Allow partial updates
+      
+      // Update user
+      users[userIndex] = {
+        ...users[userIndex],
+        ...validatedData,
+        id: users[userIndex].id, // Preserve the ID
+        created_at: users[userIndex].created_at, // Preserve creation date
+        password: validatedData.password || users[userIndex].password, // Only update password if provided
+      };
 
-    // Don't return the password in the response
-    const { password, ...userWithoutPassword } = users[userIndex];
+      // Don't return the password in the response
+      const { password, ...userWithoutPassword } = users[userIndex];
 
-    return sendSuccess(
-      { data: userWithoutPassword },
-      'Signup updated successfully'
-    );
+      return sendSuccess(
+        { data: userWithoutPassword },
+        'Signup updated successfully'
+      );
+    } catch (validationError) {
+      if (validationError instanceof ZodError) {
+        return sendError(
+          'Validation failed',
+          ERROR_CODES.VALIDATION_ERROR,
+          400,
+          validationError.issues.map((err) => ({
+            field: err.path.join('.'),
+            message: err.message,
+          }))
+        );
+      }
+      throw validationError;
+    }
   } catch (error) {
     console.error('Error updating signup:', error);
     return sendError(

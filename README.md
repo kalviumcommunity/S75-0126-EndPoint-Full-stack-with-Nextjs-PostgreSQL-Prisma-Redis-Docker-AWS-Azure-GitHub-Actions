@@ -1,5 +1,4 @@
 
-
 # **Project Plan: DigitalCred**
 
 ### *A Low-Friction Digital Credibility System for Small-Scale Entrepreneurs*
@@ -64,6 +63,10 @@ To build a **low-friction digital trust platform** that enables local businesses
 ### Authentication
 
 * **OTP-based Authentication** (Phone / Email)
+
+### Validation
+
+* **Zod** (Runtime validation for API inputs)
 
 ### DevOps & Deployment
 
@@ -387,5 +390,71 @@ The standardized response format provides significant benefits:
 5. **Team Collaboration**: All developers work with the same response patterns, reducing cognitive load.
 
 
+## Input Validation with Zod
 
+This project implements robust input validation using Zod to ensure data integrity and security across all API endpoints. Zod provides runtime validation, TypeScript integration, and excellent error handling for all incoming requests.
 
+### Schema Definitions
+
+User schema definition (`src/lib/schemas/userSchema.ts`):
+
+```typescript
+import { z } from "zod";
+
+export const userSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters long"),
+  email: z.string().email("Invalid email address"),
+  age: z.number().min(18, "User must be 18 or older"),
+});
+```
+
+### Validation Examples
+
+**Passing Validation:**
+```json
+{
+  "name": "Alice",
+  "email": "alice@example.com",
+  "age": 22
+}
+```
+Result: Status 201 - User created successfully
+
+**Failing Validation:**
+```json
+{
+  "name": "A",
+  "email": "bademail"
+}
+```
+Result: Status 400 - Returns structured error response
+
+**Expected Error Response:**
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "error": {
+    "code": "E001",
+    "details": [
+      {"field": "name", "message": "Name must be at least 2 characters long"},
+      {"field": "email", "message": "Invalid email address"}
+    ]
+  }
+}
+```
+
+### Schema Reuse
+
+Schemas are designed for reuse between client and server:
+- **Client**: Validate form inputs before submitting to reduce unnecessary API calls
+- **Server**: Validate data again before processing (defense in depth strategy)
+
+### Validation Consistency Benefits
+
+Validation consistency provides significant advantages in team projects:
+1. **Shared Understanding**: All team members work with the same validation rules
+2. **Reduced Bugs**: Early detection of invalid data prevents downstream errors
+3. **Better UX**: Consistent validation feedback across frontend and backend
+4. **Maintainability**: Centralized validation logic that's easy to update
+5. **Type Safety**: Compile-time and runtime validation with TypeScript support
