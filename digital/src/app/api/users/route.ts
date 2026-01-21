@@ -1,3 +1,6 @@
+ Caching-layer-with-redis
+import { NextRequest } from 'next/server';
+
  errHandling
 import { NextRequest } from 'next/server';
 import { sendSuccess, sendError } from '../../../lib/responseHandler';
@@ -6,10 +9,16 @@ import { handleError } from '../../../lib/errorHandler';
 import { logger } from '../../../lib/logger';
 
 import { NextRequest, NextResponse } from 'next/server';
+ main
 import { sendSuccess, sendError } from '../../../lib/responseHandler';
 import { ERROR_CODES } from '../../../lib/errorCodes';
 import { userSchema } from '../../../lib/schemas/userSchema';
 import { ZodError } from 'zod';
+ Caching-layer-with-redis
+import { prisma } from '../../../lib/prisma';
+import redis from '../../../lib/redis';
+
+ main
  main
 
 // Mock data for demonstration
@@ -23,24 +32,26 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-// GET /api/users - Get all users with pagination
-export async function GET(request: NextRequest) {
+// GET /api/users - Get all users with Redis caching
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const offset = (page - 1) * limit;
+    const cacheKey = "users:list";
+    const cachedData = await redis.get(cacheKey);
 
-    // Validate pagination parameters
-    if (isNaN(page) || isNaN(limit) || page < 1 || limit < 1 || limit > 100) {
-      return sendError(
-        'Invalid pagination parameters. Page and limit must be positive integers, limit max 100.',
-        ERROR_CODES.VALIDATION_ERROR,
-        400
-      );
+    if (cachedData) {
+      console.log("Cache Hit");
+      return sendSuccess(JSON.parse(cachedData), 'Users fetched successfully (from cache)');
     }
 
-    // Apply pagination
+ Caching-layer-with-redis
+    console.log("Cache Miss - Fetching from DB");
+    const users = await prisma.users.findMany();
+
+    // Cache data for 60 seconds (TTL)
+    await redis.set(cacheKey, JSON.stringify(users), "EX", 60);
+
+    return sendSuccess(users, 'Users fetched successfully');
+  // Apply pagination
     const paginatedUsers = users.slice(offset, offset + limit);
     const totalCount = users.length;
     const totalPages = Math.ceil(totalCount / limit);
@@ -62,6 +73,7 @@ export async function GET(request: NextRequest) {
         hasPrev: page > 1,
       },
     }, 'Users fetched successfully');
+ main
   } catch (error) {
     return handleError(error, 'GET /api/users');
   }

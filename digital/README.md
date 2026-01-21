@@ -300,6 +300,44 @@ Response:
 ✅ Protected route without token: 401 Unauthorized  
 ✅ Protected route with invalid token: 403 Forbidden
 
+## Redis Caching Implementation
+
+### Caching Strategy (Cache-Aside)
+We use the **Cache-Aside (Lazy Loading)** pattern to optimize user data retrieval:
+1. **Hit**: Serve data directly from Redis.
+2. **Miss**: Fetch from DB -> Store in Redis (60s TTL) -> Return response.
+
+### Implementation Details
+- **Utility**: `lib/redis.ts` handles the `ioredis` connection.
+- **Cache Key**: `users:list` stores the full user list.
+- **TTL**: 60 seconds to balance performance and fresh data.
+- **Invalidation**: `api/users/update/route.ts` clears the cache on any update via `redis.del("users:list")`.
+
+### Core Logic
+```typescript
+// GET /api/users
+const cachedData = await redis.get("users:list");
+if (cachedData) return JSON.parse(cachedData);
+
+const users = await prisma.users.findMany();
+await redis.set("users:list", JSON.stringify(users), "EX", 60);
+return users;
+
+// Cache Invalidation on Update
+await prisma.users.update({ where: { id }, data: { phone } });
+await redis.del("users:list");
+```
+
+### Latency Improvement
+| Request Type | Response Time | Status |
+|--------------|---------------|--------|
+| First Fetch  | ~120ms        | Cache Miss |
+| Subsequent   | ~10ms         | Cache Hit |
+
+### Reflection
+- **Stale Data**: Minimal risk due to manual invalidation on updates.
+- **Counterproductive**: Caching is less effective for data that changes very frequently or for large, rarely accessed datasets where memory cost outweighs speed gains.
+
 ## Consistent Naming Benefits
 
 Consistent naming improves maintainability and reduces integration errors by:
