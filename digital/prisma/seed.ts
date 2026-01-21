@@ -1,10 +1,10 @@
-import { prisma } from './prisma';
+import { prisma } from '../src/lib/prisma';
 
 async function main() {
-  await prisma.user.createMany({
+  await prisma.users.createMany({
     data: [
-      { name: 'Alice', email: 'alice@example.com' },
-      { name: 'Bob', email: 'bob@example.com' },
+      { phone: '+1234567890' },
+      { phone: '+0987654321' },
     ],
   });
 

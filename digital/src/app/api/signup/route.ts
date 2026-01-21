@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { sendSuccess, sendError } from '@/lib/responseHandler';
-import { ERROR_CODES } from '@/lib/errorCodes';
+import { NextRequest } from 'next/server';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
 
 // Define TypeScript interfaces
 interface User {
@@ -112,6 +112,7 @@ export async function POST(request: NextRequest) {
     users.push(newUser);
 
     // Don't return the password in the response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = newUser;
 
     return sendSuccess(
@@ -158,6 +159,7 @@ export async function PUT(request: NextRequest) {
     };
 
     // Don't return the password in the response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = users[userIndex];
 
     return sendSuccess(
