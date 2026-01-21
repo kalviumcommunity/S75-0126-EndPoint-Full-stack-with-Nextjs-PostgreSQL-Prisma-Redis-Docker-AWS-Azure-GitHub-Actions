@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { sendSuccess, sendError } from '@/lib/responseHandler';
-import { ERROR_CODES } from '@/lib/errorCodes';
+import { NextRequest } from 'next/server';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
 
 // Mock data for demonstration
 let businesses = [

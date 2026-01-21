@@ -1,10 +1,25 @@
+ Caching-layer-with-redis
 import { NextRequest } from 'next/server';
+
+ errHandling
+import { NextRequest } from 'next/server';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
+import { handleError } from '../../../lib/errorHandler';
+import { logger } from '../../../lib/logger';
+
+import { NextRequest, NextResponse } from 'next/server';
+ main
 import { sendSuccess, sendError } from '../../../lib/responseHandler';
 import { ERROR_CODES } from '../../../lib/errorCodes';
 import { userSchema } from '../../../lib/schemas/userSchema';
 import { ZodError } from 'zod';
+ Caching-layer-with-redis
 import { prisma } from '../../../lib/prisma';
 import redis from '../../../lib/redis';
+
+ main
+ main
 
 // Mock data for demonstration
 let users = [
@@ -28,6 +43,7 @@ export async function GET() {
       return sendSuccess(JSON.parse(cachedData), 'Users fetched successfully (from cache)');
     }
 
+ Caching-layer-with-redis
     console.log("Cache Miss - Fetching from DB");
     const users = await prisma.users.findMany();
 
@@ -35,13 +51,31 @@ export async function GET() {
     await redis.set(cacheKey, JSON.stringify(users), "EX", 60);
 
     return sendSuccess(users, 'Users fetched successfully');
+  // Apply pagination
+    const paginatedUsers = users.slice(offset, offset + limit);
+    const totalCount = users.length;
+    const totalPages = Math.ceil(totalCount / limit);
+
+    logger.info('Users fetched successfully', {
+      page,
+      limit,
+      totalCount,
+      totalPages
+    });
+
+    return sendSuccess({
+      data: paginatedUsers,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalItems: totalCount,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    }, 'Users fetched successfully');
+ main
   } catch (error) {
-    console.error('Error fetching users:', error);
-    return sendError(
-      'Internal server error',
-      ERROR_CODES.INTERNAL_ERROR,
-      500
-    );
+    return handleError(error, 'GET /api/users');
   }
 }
 
@@ -78,6 +112,9 @@ export async function POST(request: NextRequest) {
       201
     );
   } catch (error) {
+ errHandling
+    return handleError(error, 'POST /api/users');
+
     if (error instanceof ZodError) {
       return sendError(
         'Validation failed',
@@ -96,6 +133,7 @@ export async function POST(request: NextRequest) {
       ERROR_CODES.INTERNAL_ERROR,
       500
     );
+ main
   }
 }
 
@@ -134,6 +172,9 @@ export async function PUT(request: NextRequest) {
       'User updated successfully'
     );
   } catch (error) {
+ errHandling
+    return handleError(error, 'PUT /api/users');
+
     if (error instanceof ZodError) {
       return sendError(
         'Validation failed',
@@ -152,6 +193,7 @@ export async function PUT(request: NextRequest) {
       ERROR_CODES.INTERNAL_ERROR,
       500
     );
+ main
   }
 }
 
@@ -178,11 +220,6 @@ export async function DELETE(request: NextRequest) {
       'User deleted successfully'
     );
   } catch (error) {
-    console.error('Error deleting user:', error);
-    return sendError(
-      'Internal server error',
-      ERROR_CODES.INTERNAL_ERROR,
-      500
-    );
+    return handleError(error, 'DELETE /api/users');
   }
 }

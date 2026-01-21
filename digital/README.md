@@ -22,6 +22,119 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+ errHandling
+## Centralized Error Handling & Logging
+
+This application implements a centralized error handling and logging system to improve debugging, security, and maintainability.
+
+### Why Centralized Error Handling Matters
+
+- **Consistency**: All API responses follow the same error format
+- **Security**: Stack traces are hidden in production environments
+- **Debugging**: Structured JSON logs make troubleshooting easier
+- **Maintainability**: Error logic is centralized, reducing code duplication
+
+### Implementation
+
+#### Logger Utility (`src/lib/logger.ts`)
+
+Provides structured JSON logging with timestamps and metadata:
+
+```typescript
+export const logger = {
+  info: (message: string, meta?: unknown) => {
+    console.log(JSON.stringify({
+      level: "info",
+      message,
+      meta,
+      timestamp: new Date().toISOString(),
+    }));
+  },
+
+  error: (message: string, meta?: unknown) => {
+    console.error(JSON.stringify({
+      level: "error",
+      message,
+      meta,
+      timestamp: new Date().toISOString(),
+    }));
+  },
+};
+```
+
+#### Error Handler (`src/lib/errorHandler.ts`)
+
+Centralized error handling with environment-aware responses:
+
+```typescript
+export function handleError(error: unknown, context: string) {
+  const isProd = process.env.NODE_ENV === "production";
+
+  const errorResponse = {
+    success: false,
+    message: isProd
+      ? "Something went wrong. Please try again later."
+      : error instanceof Error ? error.message : "Unknown error",
+    ...(isProd ? {} : { stack: error instanceof Error ? error.stack : undefined }),
+  };
+
+  logger.error(`Error in ${context}`, {
+    message: error instanceof Error ? error.message : "Unknown error",
+    stack: isProd ? "REDACTED" : (error instanceof Error ? error.stack : "No stack trace"),
+  });
+
+  return NextResponse.json(errorResponse, { status: 500 });
+}
+```
+
+### Environment Behavior
+
+| Environment | Client Response | Internal Logs |
+|-------------|------------------|----------------|
+| Development | Full error + stack trace | Full details |
+| Production | Generic message | Detailed but redacted |
+
+### Usage Example
+
+```typescript
+import { handleError } from '../../../lib/errorHandler';
+
+export async function GET() {
+  try {
+    // Your logic here
+    throw new Error("Database connection failed!");
+  } catch (error) {
+    return handleError(error, "GET /api/users");
+  }
+}
+```
+
+### Key Benefits
+
+1. **Structured Logs**: JSON format is machine-readable and easy to parse
+2. **Security**: Production responses don't leak sensitive information
+3. **Context**: Error context tells you exactly where failures occur
+4. **Scalability**: Easy to extend with custom error types
+
+### Future Extensions
+
+You can add custom error classes for different HTTP status codes:
+
+```typescript
+class ValidationError extends Error {
+  statusCode = 400;
+}
+
+class NotFoundError extends Error {
+  statusCode = 404;
+}
+```
+
+Then update `handleError()` to return appropriate status codes based on error type.
+
+ task/optimisation
+ main
+
 ## API Routes Documentation
 
 This application includes several RESTful API endpoints under the `/api/` route:
@@ -235,6 +348,7 @@ Consistent naming improves maintainability and reduces integration errors by:
 4. Maintaining uniform structure across all endpoints
 5. Providing clear documentation for developers
 
+main
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
