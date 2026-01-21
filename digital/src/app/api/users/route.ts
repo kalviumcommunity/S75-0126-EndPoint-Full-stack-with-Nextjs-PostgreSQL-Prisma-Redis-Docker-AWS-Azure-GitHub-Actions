@@ -1,13 +1,21 @@
+ errHandling
 import { NextRequest } from 'next/server';
 import { sendSuccess, sendError } from '../../../lib/responseHandler';
 import { ERROR_CODES } from '../../../lib/errorCodes';
 import { handleError } from '../../../lib/errorHandler';
 import { logger } from '../../../lib/logger';
 
+import { NextRequest, NextResponse } from 'next/server';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
+import { userSchema } from '../../../lib/schemas/userSchema';
+import { ZodError } from 'zod';
+ main
+
 // Mock data for demonstration
 let users = [
-  { id: '1', phone: '+1234567890', is_verified: true, created_at: new Date().toISOString() },
-  { id: '2', phone: '+0987654321', is_verified: false, created_at: new Date().toISOString() },
+  { id: '1', name: 'John Doe', email: 'john@example.com', age: 30, created_at: new Date().toISOString() },
+  { id: '2', name: 'Jane Smith', email: 'jane@example.com', age: 25, created_at: new Date().toISOString() },
 ];
 
 // Helper function to generate a new ID
@@ -64,20 +72,14 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Validation
-    if (!body.phone) {
-      return sendError(
-        'Phone number is required',
-        ERROR_CODES.VALIDATION_ERROR,
-        400
-      );
-    }
-
-    // Check if user already exists
-    const existingUser = users.find(user => user.phone === body.phone);
+    // Zod validation
+    const validatedData = userSchema.parse(body);
+    
+    // Check if user already exists (by email)
+    const existingUser = users.find(user => user.email === validatedData.email);
     if (existingUser) {
       return sendError(
-        'User with this phone number already exists',
+        'User with this email already exists',
         ERROR_CODES.CONFLICT_ERROR,
         409
       );
@@ -86,8 +88,7 @@ export async function POST(request: NextRequest) {
     // Create new user
     const newUser = {
       id: generateId(),
-      phone: body.phone,
-      is_verified: body.is_verified || false,
+      ...validatedData,
       created_at: new Date().toISOString(),
     };
 
@@ -99,7 +100,28 @@ export async function POST(request: NextRequest) {
       201
     );
   } catch (error) {
+ errHandling
     return handleError(error, 'POST /api/users');
+
+    if (error instanceof ZodError) {
+      return sendError(
+        'Validation failed',
+        ERROR_CODES.VALIDATION_ERROR,
+        400,
+        error.issues.map((issue) => ({
+          field: issue.path[0],
+          message: issue.message,
+        }))
+      );
+    }
+    
+    console.error('Error creating user:', error);
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
+    );
+ main
   }
 }
 
@@ -122,10 +144,13 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // Zod validation for update
+    const validatedData = userSchema.partial().parse(body); // Allow partial updates
+    
     // Update user
     users[userIndex] = {
       ...users[userIndex],
-      ...body,
+      ...validatedData,
       id: users[userIndex].id, // Preserve the ID
       created_at: users[userIndex].created_at, // Preserve creation date
     };
@@ -135,7 +160,28 @@ export async function PUT(request: NextRequest) {
       'User updated successfully'
     );
   } catch (error) {
+ errHandling
     return handleError(error, 'PUT /api/users');
+
+    if (error instanceof ZodError) {
+      return sendError(
+        'Validation failed',
+        ERROR_CODES.VALIDATION_ERROR,
+        400,
+        error.issues.map((issue) => ({
+          field: issue.path[0],
+          message: issue.message,
+        }))
+      );
+    }
+    
+    console.error('Error updating user:', error);
+    return sendError(
+      'Internal server error',
+      ERROR_CODES.INTERNAL_ERROR,
+      500
+    );
+ main
   }
 }
 
