@@ -25,7 +25,7 @@ export function middleware(req: NextRequest) {
   }
 
   try {
-    const decoded: any = jwt.verify(token, JWT_SECRET);
+    const decoded: { email: string; role: string } = jwt.verify(token, JWT_SECRET) as { email: string; role: string };
 
     // Check if user's role is allowed
     if (!routeRoles[protectedRoute].includes(decoded.role)) {

@@ -1,8 +1,16 @@
+ errHandling
+import { NextRequest } from 'next/server';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
+import { handleError } from '../../../lib/errorHandler';
+import { logger } from '../../../lib/logger';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { sendSuccess, sendError } from '../../../lib/responseHandler';
 import { ERROR_CODES } from '../../../lib/errorCodes';
 import { userSchema } from '../../../lib/schemas/userSchema';
 import { ZodError } from 'zod';
+ main
 
 // Mock data for demonstration
 let users = [
@@ -37,6 +45,13 @@ export async function GET(request: NextRequest) {
     const totalCount = users.length;
     const totalPages = Math.ceil(totalCount / limit);
 
+    logger.info('Users fetched successfully', {
+      page,
+      limit,
+      totalCount,
+      totalPages
+    });
+
     return sendSuccess({
       data: paginatedUsers,
       pagination: {
@@ -48,12 +63,7 @@ export async function GET(request: NextRequest) {
       },
     }, 'Users fetched successfully');
   } catch (error) {
-    console.error('Error fetching users:', error);
-    return sendError(
-      'Internal server error',
-      ERROR_CODES.INTERNAL_ERROR,
-      500
-    );
+    return handleError(error, 'GET /api/users');
   }
 }
 
@@ -90,6 +100,9 @@ export async function POST(request: NextRequest) {
       201
     );
   } catch (error) {
+ errHandling
+    return handleError(error, 'POST /api/users');
+
     if (error instanceof ZodError) {
       return sendError(
         'Validation failed',
@@ -108,6 +121,7 @@ export async function POST(request: NextRequest) {
       ERROR_CODES.INTERNAL_ERROR,
       500
     );
+ main
   }
 }
 
@@ -146,6 +160,9 @@ export async function PUT(request: NextRequest) {
       'User updated successfully'
     );
   } catch (error) {
+ errHandling
+    return handleError(error, 'PUT /api/users');
+
     if (error instanceof ZodError) {
       return sendError(
         'Validation failed',
@@ -164,6 +181,7 @@ export async function PUT(request: NextRequest) {
       ERROR_CODES.INTERNAL_ERROR,
       500
     );
+ main
   }
 }
 
@@ -190,11 +208,6 @@ export async function DELETE(request: NextRequest) {
       'User deleted successfully'
     );
   } catch (error) {
-    console.error('Error deleting user:', error);
-    return sendError(
-      'Internal server error',
-      ERROR_CODES.INTERNAL_ERROR,
-      500
-    );
+    return handleError(error, 'DELETE /api/users');
   }
 }

@@ -1,3 +1,12 @@
+ errHandling
+import { prisma } from '../src/lib/prisma';
+
+async function main() {
+  await prisma.users.createMany({
+    data: [
+      { phone: '+1234567890' },
+      { phone: '+0987654321' },
+
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient()
@@ -111,6 +120,7 @@ async function main() {
         otp: '567890',
         expires_at: fiveMinutesAgo, // Expired OTP
       },
+ main
     ],
   });
 

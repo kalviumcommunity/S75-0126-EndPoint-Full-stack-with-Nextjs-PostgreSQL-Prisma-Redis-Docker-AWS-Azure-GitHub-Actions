@@ -1,8 +1,14 @@
+ errHandling
+import { NextRequest } from 'next/server';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { sendSuccess, sendError } from '../../../lib/responseHandler';
 import { ERROR_CODES } from '../../../lib/errorCodes';
 import { signupSchema } from '../../../lib/schemas/userSchema';
 import { ZodError } from 'zod';
+main
 
 // Define TypeScript interfaces
 interface User {
@@ -122,6 +128,31 @@ export async function POST(request: NextRequest) {
       }
       throw validationError;
     }
+errHandling
+
+    // Create new user
+    const newUser: User = {
+      id: generateId(),
+      phone: body.phone,
+      email: body.email,
+      name: body.name,
+      password: body.password, // In a real app, this should be hashed
+      is_verified: false, // New signups are not verified initially
+      created_at: new Date().toISOString(),
+    };
+
+    users.push(newUser);
+
+    // Don't return the password in the response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = newUser;
+
+    return sendSuccess(
+      { data: userWithoutPassword },
+      'Signup successful',
+      201
+    );
+ main
   } catch (error) {
     console.error('Error creating signup:', error);
     return sendError(
@@ -150,6 +181,25 @@ export async function PUT(request: NextRequest) {
         404
       );
     }
+
+ errHandling
+    // Update user
+    users[userIndex] = {
+      ...users[userIndex],
+      ...body,
+      id: users[userIndex].id, // Preserve the ID
+      created_at: users[userIndex].created_at, // Preserve creation date
+      password: body.password || users[userIndex].password, // Only update password if provided
+    };
+
+    // Don't return the password in the response
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...userWithoutPassword } = users[userIndex];
+
+    return sendSuccess(
+      { data: userWithoutPassword },
+      'Signup updated successfully'
+    );
 
     // Zod validation for update - only validate fields that are present in the update
     try {
@@ -185,6 +235,7 @@ export async function PUT(request: NextRequest) {
       }
       throw validationError;
     }
+main
   } catch (error) {
     console.error('Error updating signup:', error);
     return sendError(
