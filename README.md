@@ -293,15 +293,15 @@ curl -X GET http://localhost:3000/api/users?page=1&limit=10
 
 **Create a new user:**
 
-curl -X POST http://localhost:3000/api/users \\
-  -H "Content-Type: application/json" \\
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
   -d '{"phone":"+1234567890"}'
 ```
 
 **Update a user:**
 ```bash
-curl -X PUT http://localhost:3000/api/users/1 \\
-  -H "Content-Type: application/json" \\
+curl -X PUT http://localhost:3000/api/users/1 \
+  -H "Content-Type: application/json" \
   -d '{"phone":"+0987654321"}'
 ```
 
@@ -325,6 +325,132 @@ The API returns appropriate HTTP status codes:
 | Code | Meaning                   | Usage                             |
 |------|---------------------------|-----------------------------------|
 | 200  | OK                        | Successful GET                    |
+| 201  | Created                   | POST success                      |
+| 400  | Bad Request               | Invalid input                     |
+| 404  | Not Found                 | Resource missing                  |
+| 409  | Conflict                  | Resource already exists           |
+| 500  | Internal Server Error     | Unexpected issue                  |
+
+### Consistent Naming Benefits
+
+Consistent naming improves maintainability and reduces integration errors by:
+
+1. Making the API intuitive and predictable
+2. Following RESTful conventions
+3. Using plural nouns for resource collections
+4. Maintaining uniform structure across all endpoints
+5. Providing clear documentation for developers
+
+## API Routes Documentation
+
+This application includes several RESTful API endpoints under the `/api/` route:
+
+### API Route Hierarchy
+
+- `/api/users` - User management endpoints
+  - `GET /api/users` - Get all users with pagination
+  - `POST /api/users` - Create a new user
+  - `PUT /api/users/:id` - Update a user by ID
+  - `DELETE /api/users/:id` - Delete a user by ID
+
+- `/api/businesses` - Business management endpoints
+  - `GET /api/businesses` - Get all businesses with pagination
+  - `POST /api/businesses` - Create a new business
+  - `PUT /api/businesses/:id` - Update a business by ID
+  - `DELETE /api/businesses/:id` - Delete a business by ID
+
+- `/api/signup` - User signup endpoints
+  - `GET /api/signup` - Get all signups with pagination
+  - `POST /api/signup` - Create a new signup
+  - `PUT /api/signup/:id` - Update a signup by ID
+  - `DELETE /api/signup/:id` - Delete a signup by ID
+
+- `/api/otp` - OTP management endpoints
+  - `POST /api/otp` - Create a new OTP
+  - `PUT /api/otp/verify` - Verify an OTP
+
+- `/api` - Root API endpoint
+  - `GET /api` - Simple API test endpoint
+  - `POST /api` - Simple API test endpoint
+
+- `/api/transactions` - Transaction management endpoints
+  - `POST /api/transactions` - Place an order with transaction handling
+  - `GET /api/transactions` - Test transaction rollback behavior
+
+- `/api/optimized-queries` - Performance optimized endpoints
+  - `GET /api/optimized-queries/users` - Optimized user queries with proper selection
+  - `POST /api/optimized-queries/batch-create-users` - Batch user creation
+
+### HTTP Verbs and Resource Actions
+
+| HTTP Verb | Purpose             | Example Route           | Description              |
+|-----------|---------------------|-------------------------|--------------------------|
+| GET       | Read data           | `/api/users`            | Get all users            |
+| POST      | Create data         | `/api/users`            | Create a new user        |
+| GET (by ID)| Read specific record| `/api/users/:id`        | Get user by ID           |
+| PUT       | Update data         | `/api/users/:id`        | Update a user            |
+| DELETE    | Remove data         | `/api/users/:id`        | Delete a user            |
+
+### Sample Requests & Responses
+
+**Get all users with pagination:**
+```bash
+curl -X GET http://localhost:3000/api/users?page=1&limit=10
+```
+
+**Create a new user:**
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"+1234567890", "email":"user@example.com"}'
+```
+
+**Place an order with transaction:**
+```bash
+curl -X POST http://localhost:3000/api/transactions \
+  -H "Content-Type: application/json" \
+  -d '{"userId":"user-id", "businessId":"business-id", "items":[{"productId":"prod-id", "quantity":2, "price":29.99}], "paymentMethod":"credit_card"}'
+```
+
+**Get optimized user queries:**
+```bash
+curl -X GET http://localhost:3000/api/optimized-queries/users?page=1&limit=20
+```
+
+**Batch create users:**
+```bash
+curl -X POST http://localhost:3000/api/optimized-queries/batch-create-users \
+  -H "Content-Type: application/json" \
+  -d '{"users":[{"phone":"+1234567890", "email":"user1@example.com", "name":"User 1", "password":"pass"}, {"phone":"+1234567891", "email":"user2@example.com", "name":"User 2", "password":"pass"}]}'
+```
+
+**Update a user:**
+```bash
+curl -X PUT http://localhost:3000/api/users/1 \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"+0987654321"}'
+```
+
+**Delete a user:**
+```bash
+curl -X DELETE http://localhost:3000/api/users/1
+```
+
+### Pagination
+
+All GET requests that return large lists support pagination:
+- `page` - Page number (default: 1)
+- `limit` - Items per page (default: 10, max: 100)
+
+Example: `/api/users?page=2&limit=20`
+
+### Error Handling
+
+The API returns appropriate HTTP status codes:
+
+| Code | Meaning                   | Usage                             |
+|------|---------------------------|-----------------------------------|
+| 200  | OK                        | Successful GET                      |
 | 201  | Created                   | POST success                      |
 | 400  | Bad Request               | Invalid input                     |
 | 404  | Not Found                 | Resource missing                  |
@@ -458,3 +584,89 @@ Validation consistency provides significant advantages in team projects:
 3. **Better UX**: Consistent validation feedback across frontend and backend
 4. **Maintainability**: Centralized validation logic that's easy to update
 5. **Type Safety**: Compile-time and runtime validation with TypeScript support
+
+## Transaction and Performance Optimizations
+
+### Transaction Scenarios
+
+**Location:** `digital/src/app/api/transactions/route.ts`
+
+- **Order Placement Transaction**: Ensures atomicity when creating orders, updating inventory, and recording payments
+- **Multiple Operations**: Combines order creation, inventory update, and payment recording in a single transaction
+- **Use Case**: When placing an order, all three operations (create order, update product stock, record payment) must succeed together to maintain data consistency
+
+### Rollback Logic
+
+**Location:** `digital/src/app/api/transactions/route.ts`
+
+- **Atomicity Guarantee**: Uses Prisma's `$transaction()` API to ensure all operations succeed or all fail
+- **Error Handling**: Wraps transactions in try-catch blocks to handle errors gracefully
+- **Verification**: Tests rollback behavior by intentionally triggering errors and confirming no partial writes occurred
+- **Automatic Rollback**: Prisma automatically rolls back changes when any operation in the transaction fails
+
+### Indexes Added
+
+**Location:** `digital/prisma/schema.prisma`
+
+**User Model:**
+- `@@index([phone])` - Optimizes phone-based lookups
+- `@@index([email])` - Optimizes email-based lookups
+- `@@index([created_at])` - Optimizes chronological queries
+
+**Business Model:**
+- `@@index([owner_id])` - Optimizes user-business relationship queries
+- `@@index([category])` - Optimizes category-based filtering
+- `@@index([area])` - Optimizes location-based queries
+- `@@index([is_active])` - Optimizes active/inactive filtering
+
+**Product Model:**
+- `@@index([business_id])` - Optimizes business-product relationship queries
+- `@@index([category])` - Optimizes category-based filtering
+- `@@index([stock])` - Optimizes inventory queries
+- `@@index([is_active])` - Optimizes active/inactive filtering
+
+**Order Model:**
+- `@@index([user_id])` - Optimizes user-order relationship queries
+- `@@index([business_id])` - Optimizes business-order relationship queries
+- `@@index([status])` - Optimizes status-based filtering
+
+### Performance Optimizations
+
+**Location:** `digital/src/app/api/optimized-queries/route.ts`
+
+- **Avoid Over-fetching**: Uses `select` to only fetch needed fields instead of full objects
+- **Batch Operations**: Implements `createMany` for efficient bulk inserts
+- **Proper Pagination**: Uses `skip` and `take` for efficient pagination
+- **Count Optimization**: Separates count operations for better performance
+
+### Performance Comparison
+
+**Location:** `digital/src/lib/performanceMonitor.ts`
+
+**Before Optimization:**
+- Full table scans with `include` fetching all related data
+- Individual record creation instead of batch operations
+- No field selection, retrieving entire objects
+
+**After Optimization:**
+- Field-level selection with `select` only needed data
+- Batch operations with `createMany` for bulk inserts
+- Indexed queries for faster lookups
+- Proper pagination to limit result sets
+
+### Anti-patterns Avoided
+
+- **N+1 Queries**: Fixed by using proper `include` and `select` with relation counts
+- **Full Table Scans**: Prevented by adding appropriate database indexes
+- **Over-fetching**: Resolved by selecting only required fields
+- **Individual Operations**: Replaced with batch operations for bulk actions
+
+### Production Monitoring Strategy
+
+**Location:** `digital/src/lib/performanceMonitor.ts`
+
+- **Latency Tracking**: Monitors query execution times with timing logs
+- **Error Rate Monitoring**: Tracks transaction failures and rollbacks
+- **Slow Query Detection**: Identifies queries exceeding threshold (default 100ms)
+- **Performance Baselines**: Establishes metrics for query performance
+- **Health Checks**: Regular database connectivity and performance tests
