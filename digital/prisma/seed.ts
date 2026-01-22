@@ -1,19 +1,8 @@
- errHandling
 import { prisma } from '../src/lib/prisma';
 
 async function main() {
-  await prisma.users.createMany({
-    data: [
-      { phone: '+1234567890' },
-      { phone: '+0987654321' },
-
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient()
-
-async function main() {
   // Clear existing data (optional - remove if you want to keep existing data)
-  await prisma.oTP.deleteMany();
+  await prisma.otp.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
@@ -66,7 +55,7 @@ async function main() {
   });
 
   // Create products
-  const product1 = await prisma.product.create({
+  await prisma.product.create({
     data: {
       name: 'Laptop Stand',
       description: 'Ergonomic adjustable laptop stand',
@@ -77,7 +66,7 @@ async function main() {
     },
   });
 
-  const product2 = await prisma.product.create({
+  await prisma.product.create({
     data: {
       name: 'Coffee Mug',
       description: 'Premium ceramic coffee mug',
@@ -93,7 +82,7 @@ async function main() {
   const fiveMinutesLater = new Date(now.getTime() + 5 * 60000);
   const fiveMinutesAgo = new Date(now.getTime() - 5 * 60000);
 
-  await prisma.oTP.createMany({
+  await prisma.otp.createMany({
     data: [
       {
         phone: '+919876543210',
@@ -120,7 +109,6 @@ async function main() {
         otp: '567890',
         expires_at: fiveMinutesAgo, // Expired OTP
       },
- main
     ],
   });
 
@@ -128,12 +116,13 @@ async function main() {
   console.log(`Created ${await prisma.user.count()} users`);
   console.log(`Created ${await prisma.business.count()} businesses`);
   console.log(`Created ${await prisma.product.count()} products`);
-  console.log(`Created ${await prisma.oTP.count()} OTP records`);
+  console.log(`Created ${await prisma.otp.count()} OTP records`);
 }
 
 main()
   .catch((e) => {
     console.error('Error seeding database:', e);
+    // @ts-ignore
     process.exit(1);
   })
   .finally(async () => {
