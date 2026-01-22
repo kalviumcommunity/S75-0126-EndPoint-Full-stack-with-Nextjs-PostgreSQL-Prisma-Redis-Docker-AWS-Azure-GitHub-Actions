@@ -794,3 +794,5 @@ export class ErrorHandler {
 [ERROR] 2025-01-22T10:30:00.123Z - Database connection failed (ID: ERR_1705915800_F5G6H7I8J)
 - Error: An internal server error occurred
 ```
+
+Sandbox mode, rate limits, and bounce handling considered
