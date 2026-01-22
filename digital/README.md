@@ -300,6 +300,39 @@ Response:
 ✅ Protected route without token: 401 Unauthorized  
 ✅ Protected route with invalid token: 403 Forbidden
 
+## Next.js App Router & Navigation
+
+### Route Map
+- **Public Routes**: `/` (Home), `/login` (Auth)
+- **Protected Routes**: `/dashboard` (User Portal), `/users/[id]` (Dynamic Profiles)
+
+### Auth Middleware
+```typescript
+export function middleware(req: NextRequest) {
+  const token = req.cookies.get("token")?.value;
+  if (!token && isProtectedRoute) return NextResponse.redirect("/login");
+  return NextResponse.next();
+}
+```
+
+### Dynamic Routing
+```typescript
+export default async function UserProfile({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <div>User ID: {id}</div>;
+}
+```
+
+### Visuals (Expected)
+- **Navigation**: Persistent top bar for easy access across routes.
+- **Dynamic Pages**: Context-aware rendering for `/users/1`, `/users/2`.
+- **Error Handling**: Custom `not-found.tsx` for graceful 404 recovery.
+
+### Reflection
+- **Scalability**: Dynamic routes allow a single template to serve millions of users.
+- **SEO**: Structured, keyword-rich URLs (/users/john-doe) improve search ranking.
+- **UX**: Persistent navigation and breadcrumbs provide clear context and reduce bounce rates.
+
 ## Redis Caching Implementation
 
 ### Caching Strategy (Cache-Aside)
