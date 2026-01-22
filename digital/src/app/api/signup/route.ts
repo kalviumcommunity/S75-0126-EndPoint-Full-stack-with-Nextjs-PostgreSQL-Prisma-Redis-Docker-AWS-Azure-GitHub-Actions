@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import { sendSuccess, sendError } from '../../../lib/responseHandler';
 import { ERROR_CODES } from '../../../lib/errorCodes';
+import { signupSchema } from '../../../lib/schemas/userSchema';
+import { ZodError } from 'zod';
 
 // Define TypeScript interfaces
 interface User {
@@ -71,25 +73,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Validation
-    if (!body.email && !body.phone) {
-      return sendError(
-        'Either email or phone number is required',
-        ERROR_CODES.VALIDATION_ERROR,
-        400
-      );
-    }
-
-    if (!body.password) {
-      return sendError(
-        'Password is required',
-        ERROR_CODES.VALIDATION_ERROR,
-        400
-      );
-    }
-
+    // Zod validation
+    const validatedData = signupSchema.parse(body);
+    
     // Check if user already exists
-    const existingUser = users.find(user => user.email === body.email || user.phone === body.phone);
+    const existingUser = users.find(user => user.email === validatedData.email || user.phone === validatedData.phone);
     if (existingUser) {
       return sendError(
         'User with this email or phone number already exists',
@@ -101,10 +89,10 @@ export async function POST(request: NextRequest) {
     // Create new user
     const newUser: User = {
       id: generateId(),
-      phone: body.phone,
-      email: body.email,
-      name: body.name,
-      password: body.password, // In a real app, this should be hashed
+      phone: validatedData.phone,
+      email: validatedData.email,
+      name: validatedData.name,
+      password: validatedData.password, // In a real app, this should be hashed
       is_verified: false, // New signups are not verified initially
       created_at: new Date().toISOString(),
     };
@@ -112,7 +100,6 @@ export async function POST(request: NextRequest) {
     users.push(newUser);
 
     // Don't return the password in the response
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...userWithoutPassword } = newUser;
 
     return sendSuccess(
@@ -120,13 +107,26 @@ export async function POST(request: NextRequest) {
       'Signup successful',
       201
     );
-  } catch (error) {
+  } catch (error: any) {
+    if (error instanceof ZodError) {
+      return sendError(
+        'Validation failed',
+        ERROR_CODES.VALIDATION_ERROR,
+        400,
+        error.issues.map((err: any) => ({
+          field: err.path.join('.'),
+          message: err.message,
+        }))
+      );
+    }
+    
     console.error('Error creating signup:', error);
     return sendError(
       'Internal server error',
       ERROR_CODES.INTERNAL_ERROR,
       500
     );
+
   }
 }
 
@@ -148,25 +148,41 @@ export async function PUT(request: NextRequest) {
         404
       );
     }
+    
+    try {
+      const validatedData = signupSchema.partial().parse(body); // Allow partial updates
+      
+      // Update user
+      users[userIndex] = {
+        ...users[userIndex],
+        ...validatedData,
+        id: users[userIndex].id, // Preserve the ID
+        created_at: users[userIndex].created_at, // Preserve creation date
+        password: validatedData.password || users[userIndex].password, // Only update password if provided
+      };
 
-    // Update user
-    users[userIndex] = {
-      ...users[userIndex],
-      ...body,
-      id: users[userIndex].id, // Preserve the ID
-      created_at: users[userIndex].created_at, // Preserve creation date
-      password: body.password || users[userIndex].password, // Only update password if provided
-    };
+      // Don't return the password in the response
+      const { password, ...userWithoutPassword } = users[userIndex];
 
-    // Don't return the password in the response
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = users[userIndex];
-
-    return sendSuccess(
-      { data: userWithoutPassword },
-      'Signup updated successfully'
-    );
-  } catch (error) {
+      return sendSuccess(
+        { data: userWithoutPassword },
+        'Signup updated successfully'
+      );
+    } catch (validationError: any) {
+      if (validationError instanceof ZodError) {
+        return sendError(
+          'Validation failed',
+          ERROR_CODES.VALIDATION_ERROR,
+          400,
+          validationError.issues.map((err: any) => ({
+            field: err.path.join('.'),
+            message: err.message,
+          }))
+        );
+      }
+      throw validationError;
+    }
+  } catch (error: any) {
     console.error('Error updating signup:', error);
     return sendError(
       'Internal server error',

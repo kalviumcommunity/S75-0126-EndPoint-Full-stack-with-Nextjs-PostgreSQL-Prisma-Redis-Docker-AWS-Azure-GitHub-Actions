@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   // Password is extracted for future implementation
   void (await req.json()).password;
 
-  const user = await prisma.users.findUnique({ where: { phone: email } });
+  const user = await prisma.user.findUnique({ where: { phone: email } });
 
   if (!user) {
     return NextResponse.json(
