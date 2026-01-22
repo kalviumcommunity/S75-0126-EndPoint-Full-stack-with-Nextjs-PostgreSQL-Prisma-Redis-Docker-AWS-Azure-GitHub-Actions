@@ -8,43 +8,45 @@ datasource db {
 }
 
 model User {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  phone      String    @unique @db.VarChar(15)
-  email      String    @unique @db.VarChar(255)
-  name       String    @db.VarChar(100)
-  password   String    @db.VarChar(255)
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone       String   @unique @db.VarChar(15)
+  email       String   @unique @db.VarChar(255)
+  name        String   @db.VarChar(100)
+  password    String   @db.VarChar(255)
   is_verified Boolean  @default(false)
-  created_at DateTime  @default(now()) @db.Timestamp(6)
-  updated_at DateTime  @updatedAt @db.Timestamp(6)
-  
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @updatedAt @db.Timestamp(6)
+
   // Relations
   businesses Business[]
   orders     Order[]
   payments   Payment[]
-  
+  files      File[]
+
   @@index([phone])
   @@index([email])
   @@index([created_at])
 }
 
 model Business {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name         String    @db.VarChar(255)
-  email        String    @unique @db.VarChar(255)
-  phone        String?   @db.VarChar(15)
-  category     String    @db.VarChar(100)
-  area         String    @db.VarChar(100)
-  description  String?   @db.Text
-  is_active    Boolean   @default(true)
-  owner_id     String
-  created_at   DateTime  @default(now()) @db.Timestamp(6)
-  updated_at   DateTime  @updatedAt @db.Timestamp(6)
-  
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(255)
+  email       String   @unique @db.VarChar(255)
+  phone       String?  @db.VarChar(15)
+  category    String   @db.VarChar(100)
+  area        String   @db.VarChar(100)
+  description String?  @db.Text
+  is_active   Boolean  @default(true)
+  owner_id    String
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @updatedAt @db.Timestamp(6)
+
   // Relations
-  owner      User      @relation(fields: [owner_id], references: [id], onDelete: Cascade)
-  products   Product[]
-  orders     Order[]
-  
+  owner    User      @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  products Product[]
+  orders   Order[]
+  files    File[]
+
   @@index([owner_id])
   @@index([category])
   @@index([area])
@@ -55,21 +57,21 @@ model Business {
 // Duplicate/incorrect models removed to avoid conflicts
 
 model Product {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String    @db.VarChar(255)
-  description String?   @db.Text
-  price       Decimal   @db.Decimal(10, 2)
-  stock       Int       @default(0)
-  category    String    @db.VarChar(100)
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  category    String   @db.VarChar(100)
   business_id String
-  is_active   Boolean   @default(true)
-  created_at  DateTime  @default(now()) @db.Timestamp(6)
-  updated_at  DateTime  @updatedAt @db.Timestamp(6)
-  
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamp(6)
+  updated_at  DateTime @updatedAt @db.Timestamp(6)
+
   // Relations
-  business   Business  @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  business   Business    @relation(fields: [business_id], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
-  
+
   @@index([business_id])
   @@index([category])
   @@index([stock])
@@ -78,20 +80,20 @@ model Product {
 }
 
 model Order {
-  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id      String
   business_id  String
-  total_amount Decimal     @db.Decimal(10, 2)
-  status       String      @db.VarChar(50) // pending, confirmed, shipped, delivered, cancelled
-  created_at   DateTime    @default(now()) @db.Timestamp(6)
-  updated_at   DateTime    @updatedAt @db.Timestamp(6)
-  
+  total_amount Decimal  @db.Decimal(10, 2)
+  status       String   @db.VarChar(50) // pending, confirmed, shipped, delivered, cancelled
+  created_at   DateTime @default(now()) @db.Timestamp(6)
+  updated_at   DateTime @updatedAt @db.Timestamp(6)
+
   // Relations
-  user      User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  business  Business    @relation(fields: [business_id], references: [id], onDelete: Cascade)
-  items     OrderItem[]
-  payments  Payment[]
-  
+  user     User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  business Business    @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  items    OrderItem[]
+  payments Payment[]
+
   @@index([user_id])
   @@index([business_id])
   @@index([status])
@@ -99,37 +101,37 @@ model Order {
 }
 
 model OrderItem {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   order_id   String
   product_id String
   quantity   Int
-  price      Decimal   @db.Decimal(10, 2)
-  created_at DateTime  @default(now()) @db.Timestamp(6)
-  
+  price      Decimal  @db.Decimal(10, 2)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+
   // Relations
   order   Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
   product Product @relation(fields: [product_id], references: [id], onDelete: Restrict)
-  
+
   @@index([order_id])
   @@index([product_id])
   @@index([created_at])
 }
 
 model Payment {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  order_id   String
-  user_id    String
-  amount     Decimal   @db.Decimal(10, 2)
-  method     String    @db.VarChar(50) // credit_card, paypal, bank_transfer
-  status     String    @db.VarChar(50) // pending, completed, failed, refunded
-  transaction_id String? @db.VarChar(255)
-  created_at DateTime  @default(now()) @db.Timestamp(6)
-  updated_at DateTime  @updatedAt @db.Timestamp(6)
-  
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_id       String
+  user_id        String
+  amount         Decimal  @db.Decimal(10, 2)
+  method         String   @db.VarChar(50) // credit_card, paypal, bank_transfer
+  status         String   @db.VarChar(50) // pending, completed, failed, refunded
+  transaction_id String?  @db.VarChar(255)
+  created_at     DateTime @default(now()) @db.Timestamp(6)
+  updated_at     DateTime @updatedAt @db.Timestamp(6)
+
   // Relations
   order Order @relation(fields: [order_id], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
+
   @@index([order_id])
   @@index([user_id])
   @@index([status])
@@ -137,14 +139,34 @@ model Payment {
 }
 
 model OTP {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  phone      String    @db.VarChar(15)
-  otp        String    @db.VarChar(6)
-  expires_at DateTime  @db.Timestamp(6)
-  created_at DateTime  @default(now()) @db.Timestamp(6)
-  
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone      String   @db.VarChar(15)
+  otp        String   @db.VarChar(6)
+  expires_at DateTime @db.Timestamp(6)
+  created_at DateTime @default(now()) @db.Timestamp(6)
+
   @@index([phone])
   @@index([expires_at])
 }
 
 // Removed duplicate/incorrect 'user' model as it's unused and conflicts with 'users'
+
+model File {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String   @db.VarChar(255)
+  url        String   @db.VarChar(500)
+  size       Int?
+  type       String?  @db.VarChar(100)
+  businessId String?
+  userId     String?
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  updatedAt  DateTime @updatedAt @db.Timestamp(6)
+
+  // Relations
+  business Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user     User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([userId])
+  @@index([createdAt])
+}

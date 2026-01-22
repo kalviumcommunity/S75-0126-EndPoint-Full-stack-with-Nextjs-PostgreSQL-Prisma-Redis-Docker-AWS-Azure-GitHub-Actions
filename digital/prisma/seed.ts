@@ -2,7 +2,7 @@ import { prisma } from '../src/lib/prisma';
 
 async function main() {
   // Clear existing data (optional - remove if you want to keep existing data)
-  await prisma.otp.deleteMany();
+  await prisma.oTP.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();

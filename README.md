@@ -670,3 +670,127 @@ Validation consistency provides significant advantages in team projects:
 - **Slow Query Detection**: Identifies queries exceeding threshold (default 100ms)
 - **Performance Baselines**: Establishes metrics for query performance
 - **Health Checks**: Regular database connectivity and performance tests
+
+## Centralized Error Handling
+
+### Explanation and Importance
+
+Centralized error handling is a critical component of any robust application that provides consistent error responses, proper logging, and secure error messages. It ensures that all errors are processed through a unified system that maintains application stability and user trust.
+
+**Why it's important:**
+- Provides consistent error responses across all API endpoints
+- Prevents sensitive information from leaking to clients
+- Enables proper logging for debugging and monitoring
+- Improves user experience with standardized error messages
+- Facilitates systematic error tracking and analysis
+
+### Code Snippets
+
+#### logger.ts
+```typescript
+import fs from 'fs';
+import path from 'path';
+
+const logDir = path.join(process.cwd(), 'logs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
+
+const logFile = path.join(logDir, 'app.log');
+
+export const logger = {
+  info: (message: string, meta?: any) => {
+    const logEntry = `[INFO] ${new Date().toISOString()} - ${message}${meta ? ` - Meta: ${JSON.stringify(meta)}` : ''}\n`;
+    console.log(logEntry.trim());
+    fs.appendFileSync(logFile, logEntry);
+  },
+  
+  error: (message: string, error?: any) => {
+    const logEntry = `[ERROR] ${new Date().toISOString()} - ${message}${error ? ` - Error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}` : ''}\n`;
+    console.error(logEntry.trim());
+    fs.appendFileSync(logFile, logEntry);
+  },
+  
+  warn: (message: string, meta?: any) => {
+    const logEntry = `[WARN] ${new Date().toISOString()} - ${message}${meta ? ` - Meta: ${JSON.stringify(meta)}` : ''}\n`;
+    console.warn(logEntry.trim());
+    fs.appendFileSync(logFile, logEntry);
+  }
+};
+```
+
+#### errorHandler.ts
+```typescript
+import { logger } from './logger';
+import { errorCodes } from './errorCodes';
+
+export class ErrorHandler {
+  static handle(error: any, isDev: boolean = process.env.NODE_ENV === 'development') {
+    const errorId = this.generateErrorId();
+    
+    // Log the error with full details in development
+    logger.error(`Error occurred (ID: ${errorId})`, {
+      message: error.message,
+      stack: isDev ? error.stack : undefined,
+      name: error.name,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Determine error response based on environment
+    if (isDev) {
+      // Full error details in development for debugging
+      return {
+        success: false,
+        error: {
+          code: error.code || errorCodes.INTERNAL_ERROR,
+          message: error.message,
+          stack: error.stack,
+          errorId
+        }
+      };
+    } else {
+      // Safe, redacted error message in production
+      return {
+        success: false,
+        error: {
+          code: error.code || errorCodes.INTERNAL_ERROR,
+          message: 'An internal server error occurred',
+          errorId
+        }
+      };
+    }
+  }
+  
+  private static generateErrorId(): string {
+    return `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+  }
+}
+```
+
+### Comparison Table: Development vs Production Error Responses
+
+| Aspect | Development | Production |
+|--------|-------------|------------|
+| Stack Trace | Included for debugging | Hidden for security |
+| Error Messages | Detailed with technical info | Generic, user-friendly |
+| Error ID | Present in both | Present in both |
+| Sensitive Data | May be exposed | Strictly redacted |
+| Logging Level | Full details logged | Essential details only |
+
+### Logs Showing Different Behaviors
+
+#### Full Stack Trace in Development:
+```
+[ERROR] 2025-01-22T10:30:00.123Z - Database connection failed (ID: ERR_1705915800_A1B2C3D4E)
+- Error: Connection timeout after 5000ms
+- Stack: Error: Connection timeout
+    at connectToDatabase (database.js:45:12)
+    at initializeApp (app.js:23:5)
+    ...
+```
+
+#### Redacted, Safe Message in Production:
+```
+[ERROR] 2025-01-22T10:30:00.123Z - Database connection failed (ID: ERR_1705915800_F5G6H7I8J)
+- Error: An internal server error occurred
+```
