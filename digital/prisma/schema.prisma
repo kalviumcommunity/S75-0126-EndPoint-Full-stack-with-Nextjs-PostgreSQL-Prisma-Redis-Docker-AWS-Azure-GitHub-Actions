@@ -52,24 +52,7 @@ model Business {
   @@index([created_at])
 }
 
-errHandling
-model businesses {
-  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name       String
-  email      String    @unique
-  phone      String?   @db.VarChar(15)
-  owner_id   String?   @db.Uuid
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-}
-
-model users {
-  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  phone       String    @unique @db.VarChar(15)
-  email       String?   @unique
-  password    String?
-  is_verified Boolean?  @default(false)
-  created_at  DateTime? @default(now()) @db.Timestamp(6)
-  signup      signup[]
+// Duplicate/incorrect models removed to avoid conflicts
 
 model Product {
   id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -162,7 +145,6 @@ model OTP {
   
   @@index([phone])
   @@index([expires_at])
- main
 }
 
 // Removed duplicate/incorrect 'user' model as it's unused and conflicts with 'users'
