@@ -386,6 +386,16 @@ The standardized response format provides significant benefits:
 4. **Enhanced Monitoring**: Consistent format enables easier integration with logging and monitoring tools.
 5. **Team Collaboration**: All developers work with the same response patterns, reducing cognitive load.
 
+📧 Transactional Email (Next.js)
 
+Integrated AWS SES / SendGrid to send automated HTML emails via a Next.js API route.
+
+Server-side email sending
+
+Verified sender authentication
+
+Tested via API with successful delivery logs
+
+Sandbox mode, rate limits, and bounce handling considered
 
 
