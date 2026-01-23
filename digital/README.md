@@ -371,32 +371,51 @@ await redis.del("users:list");
 - **Stale Data**: Minimal risk due to manual invalidation on updates.
 - **Counterproductive**: Caching is less effective for data that changes very frequently or for large, rarely accessed datasets where memory cost outweighs speed gains.
 
-## Consistent Naming Benefits
+# Context API & Custom Hooks: DigitalCred
 
-Consistent naming improves maintainability and reduces integration errors by:
+## Why AuthContext exists
+AuthContext provides a single source of truth for authentication state (user, login, logout) across the app. This avoids prop drilling and ensures any component can access or update auth state globally.
 
-1. Making the API intuitive and predictable
-2. Following RESTful conventions
-3. Using plural nouns for resource collections
-4. Maintaining uniform structure across all endpoints
-5. Providing clear documentation for developers
+## Why UIContext exists
+UIContext manages UI-related state (theme, sidebar open/close) in one place. This keeps UI logic centralized, so toggling theme or sidebar is consistent and accessible from anywhere.
 
-main
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Why custom hooks are used
+Custom hooks (useAuth, useUI) abstract away context logic and error handling. Components use these hooks for a clean, simple API, improving reusability and maintainability.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Folder Structure
+```
+digital/
+├── app/
+│   ├── layout.tsx      # Providers wrapped globally
+│   └── page.tsx        # Demo usage of hooks
+├── context/
+│   ├── AuthContext.tsx # Auth state, login/logout, provider
+│   └── UIContext.tsx   # Theme/sidebar state, toggles, provider
+├── hooks/
+│   ├── useAuth.ts      # Custom hook for AuthContext
+│   └── useUI.ts        # Custom hook for UIContext
+```
 
-## Learn More
+## State Flow
+Provider → Context → Hook → Component
+- Providers wrap the app in layout.tsx
+- Contexts store and provide state/actions
+- Hooks expose context values/actions to components
+- Components use hooks to read/update state
 
-To learn more about Next.js, take a look at the following resources:
+## Reflection
+- **Performance:** Context consumers only re-render when their subscribed values change, keeping updates efficient.
+- **Reusability:** New global states can be added as new contexts/hooks without changing existing code.
+- **No prop drilling:** Hooks access context directly, so no need to pass state/actions through many layers.
+- **Pitfalls:** Overusing context for high-frequency updates can cause unnecessary re-renders. For large apps, split state into multiple contexts or use useReducer for complex logic.
+- **Debugging:** Use React DevTools to inspect context values and check for unnecessary re-renders.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+✔ AuthContext working
+✔ UIContext working
+✔ Custom hooks created
+✔ Providers wrapped globally
+✔ State visibly changes
+✔ README completed
+````
