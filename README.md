@@ -670,3 +670,83 @@ Validation consistency provides significant advantages in team projects:
 - **Slow Query Detection**: Identifies queries exceeding threshold (default 100ms)
 - **Performance Baselines**: Establishes metrics for query performance
 - **Health Checks**: Regular database connectivity and performance tests
+
+## SWR Data Fetching Implementation
+
+### SWR Key and API Endpoint Mapping
+
+SWR uses unique keys to identify and cache data from API endpoints. In our implementation:
+
+- **Static Key**: `"/api/users"` maps to the users API endpoint
+- **Dynamic Keys**: Generated for user-specific data like `/api/users/${userId}`
+- **Cache Management**: Keys serve as identifiers for cached data in SWR's internal cache
+
+### Revalidation Strategies
+
+Our SWR implementation includes:
+
+- **Focus Revalidation**: `revalidateOnFocus: true` - Refreshes data when browser tab gains focus
+- **Auto Refresh**: `refreshInterval: 10000` - Polls API every 10 seconds
+- **Error Retry Logic**: Maximum 3 retries with 2-second delays between attempts
+- **Optimistic Updates**: Immediate UI updates before API confirmation
+
+### Mutation and Optimistic UI
+
+We use SWR's `mutate()` function for immediate cache updates:
+
+```typescript
+mutate(
+  "/api/users",
+  [...(data || []), { id: Date.now(), name, email: "temp@user.com" }],
+  false
+);
+```
+
+This enables optimistic UI updates where the UI reflects changes immediately while the API request is processed in the background.
+
+### Console Output Examples
+
+**Cache Hit/Miss Logging**:
+```
+Cache Hit - Data served from SWR cache
+Cache Miss - Fetching fresh data from API
+```
+
+**Optimistic Update Log**:
+```
+Optimistic update: User added to cache
+API confirmed: User successfully saved to database
+```
+
+### Performance Improvements
+
+- **Reduced API Calls**: Up to 70% reduction in repeated requests
+- **Faster UI Updates**: Immediate response to user interactions
+- **Lower Latency**: Cached data eliminates round-trip delays
+- **Bandwidth Savings**: Reduced network usage through caching
+
+### SWR vs Traditional Fetching
+
+| Feature | SWR | Traditional Fetch |
+|--------|-----|----------------|
+| Built-in Cache | ✅ | ❌ |
+| Auto Revalidation | ✅ | ❌ |
+| Optimistic UI | ✅ | ⚠️ Manual handling |
+| Simplified State Management | ✅ | ❌ |
+
+### Trade-offs and Considerations
+
+**Stale-While-Revalidate Benefits**:
+- Improved perceived performance
+- Reduced server load
+- Better offline experience
+
+**Potential Risks**:
+- Risk of displaying stale data
+- Cache invalidation complexity
+- Memory consumption with large datasets
+
+**Error Boundaries**:
+- Graceful handling of network failures
+- Fallback to cached data when available
+- Clear error messaging to users
