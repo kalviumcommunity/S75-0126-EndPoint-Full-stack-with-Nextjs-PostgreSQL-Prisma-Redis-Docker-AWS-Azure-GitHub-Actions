@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LayoutWrapper } from "@/components";
-
 import { AuthProvider } from "@/context/AuthContext";
 import { UIProvider } from "@/context/UIContext";
 
@@ -31,23 +30,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
- context-setup
-        {/* ✅ GLOBAL PROVIDERS */}
         <AuthProvider>
           <UIProvider>
-            <nav className="flex gap-4 p-4 bg-gray-100">
-              <Link href="/">Home</Link>
-              <Link href="/login">Login</Link>
-              <Link href="/dashboard">Dashboard</Link>
-              <Link href="/users/1">User 1</Link>
-            </nav>
-
-            {children}
+            <LayoutWrapper>{children}</LayoutWrapper>
           </UIProvider>
         </AuthProvider>
-
-        <LayoutWrapper>{children}</LayoutWrapper>
- main
       </body>
     </html>
   );
