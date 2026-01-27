@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import { LayoutWrapper } from "@/components";
+import { Toaster } from "react-hot-toast";
 
 import { AuthProvider } from "@/context/AuthContext";
 import { UIProvider } from "@/context/UIContext";
@@ -35,6 +37,23 @@ export default function RootLayout({
         {/* ✅ GLOBAL PROVIDERS */}
         <AuthProvider>
           <UIProvider>
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                success: {
+                  style: {
+                    background: "#10b981",
+                    color: "white",
+                  },
+                },
+                error: {
+                  style: {
+                    background: "#ef4444",
+                    color: "white",
+                  },
+                },
+              }}
+            />
             <nav className="flex gap-4 p-4 bg-gray-100">
               <Link href="/">Home</Link>
               <Link href="/login">Login</Link>
