@@ -17,6 +17,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.972.0",
     "@aws-sdk/s3-request-presigner": "^3.972.0",
+    "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^5.22.0",
     "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
@@ -29,6 +30,7 @@
     "react-dom": "19.2.3",
     "react-hot-toast": "^2.6.0",
     "swr": "^2.3.8"
+ main
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
