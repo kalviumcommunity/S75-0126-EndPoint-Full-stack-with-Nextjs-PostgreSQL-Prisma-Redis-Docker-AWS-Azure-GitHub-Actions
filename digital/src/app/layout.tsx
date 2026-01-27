@@ -3,8 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { LayoutWrapper } from "@/components";
+ task/responsive_design
+
 import { Toaster } from "react-hot-toast";
 
+ main
 import { AuthProvider } from "@/context/AuthContext";
 import { UIProvider } from "@/context/UIContext";
 
@@ -33,10 +36,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
- context-setup
-        {/* ✅ GLOBAL PROVIDERS */}
         <AuthProvider>
           <UIProvider>
+ task/responsive_design
+            <LayoutWrapper>{children}</LayoutWrapper>
+
             <Toaster
               position="top-right"
               toastOptions={{
@@ -62,11 +66,9 @@ export default function RootLayout({
             </nav>
 
             {children}
+ main
           </UIProvider>
         </AuthProvider>
-
-        <LayoutWrapper>{children}</LayoutWrapper>
- main
       </body>
     </html>
   );
