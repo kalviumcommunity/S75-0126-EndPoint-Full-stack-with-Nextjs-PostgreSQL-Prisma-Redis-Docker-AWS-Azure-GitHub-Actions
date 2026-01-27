@@ -2,12 +2,13 @@
 import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import AddUser from "./AddUser";
+import Loader from "@/components/Loader";
 
 export default function UsersPage() {
   const { data, error, isLoading } = useSWR("/api/users", fetcher, {
     revalidateOnFocus: true,
     refreshInterval: 10000,
-    onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
+    onErrorRetry: (_error, _key, _config, revalidate, { retryCount }) => {
       if (retryCount >= 3) return;
       setTimeout(() => revalidate({ retryCount }), 2000);
     },
@@ -15,7 +16,7 @@ export default function UsersPage() {
 
 
   if (error) return <p className="text-red-600">Failed to load users.</p>;
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading) return <Loader message="Loading users..." />;
 
   return (
     <main className="p-6">
