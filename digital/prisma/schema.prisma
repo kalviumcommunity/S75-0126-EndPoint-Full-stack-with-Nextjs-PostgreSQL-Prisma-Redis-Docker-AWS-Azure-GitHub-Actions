@@ -13,6 +13,7 @@ model User {
   email       String   @unique @db.VarChar(255)
   name        String   @db.VarChar(100)
   password    String   @db.VarChar(255)
+  refresh_token String? @db.Text
   is_verified Boolean  @default(false)
   created_at  DateTime @default(now()) @db.Timestamp(6)
   updated_at  DateTime @updatedAt @db.Timestamp(6)
@@ -37,7 +38,7 @@ model Business {
   area        String   @db.VarChar(100)
   description String?  @db.Text
   is_active   Boolean  @default(true)
-  owner_id    String
+  owner_id    String   @db.Uuid
   created_at  DateTime @default(now()) @db.Timestamp(6)
   updated_at  DateTime @updatedAt @db.Timestamp(6)
 
@@ -63,7 +64,7 @@ model Product {
   price       Decimal  @db.Decimal(10, 2)
   stock       Int      @default(0)
   category    String   @db.VarChar(100)
-  business_id String
+  business_id String   @db.Uuid
   is_active   Boolean  @default(true)
   created_at  DateTime @default(now()) @db.Timestamp(6)
   updated_at  DateTime @updatedAt @db.Timestamp(6)
@@ -81,8 +82,8 @@ model Product {
 
 model Order {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id      String
-  business_id  String
+  user_id      String   @db.Uuid
+  business_id  String   @db.Uuid
   total_amount Decimal  @db.Decimal(10, 2)
   status       String   @db.VarChar(50) // pending, confirmed, shipped, delivered, cancelled
   created_at   DateTime @default(now()) @db.Timestamp(6)
@@ -102,8 +103,8 @@ model Order {
 
 model OrderItem {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  order_id   String
-  product_id String
+  order_id   String   @db.Uuid
+  product_id String   @db.Uuid
   quantity   Int
   price      Decimal  @db.Decimal(10, 2)
   created_at DateTime @default(now()) @db.Timestamp(6)
@@ -119,8 +120,8 @@ model OrderItem {
 
 model Payment {
   id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  order_id       String
-  user_id        String
+  order_id       String   @db.Uuid
+  user_id        String   @db.Uuid
   amount         Decimal  @db.Decimal(10, 2)
   method         String   @db.VarChar(50) // credit_card, paypal, bank_transfer
   status         String   @db.VarChar(50) // pending, completed, failed, refunded
@@ -157,8 +158,8 @@ model File {
   url        String   @db.VarChar(500)
   size       Int?
   type       String?  @db.VarChar(100)
-  businessId String?
-  userId     String?
+  businessId String?  @db.Uuid
+  userId     String?  @db.Uuid
   createdAt  DateTime @default(now()) @db.Timestamp(6)
   updatedAt  DateTime @updatedAt @db.Timestamp(6)
 
