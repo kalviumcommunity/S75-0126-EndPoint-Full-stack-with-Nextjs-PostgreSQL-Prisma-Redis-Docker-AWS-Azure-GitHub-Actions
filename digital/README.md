@@ -230,6 +230,43 @@ The API returns appropriate HTTP status codes:
 | 409  | Conflict                  | Resource already exists           |
 | 500  | Internal Server Error     | Unexpected issue                  |
 
+## Security Headers (HSTS, CSP, CORS)
+
+### Overview
+- **HSTS (HTTP Strict Transport Security)**: Forces browsers to communicate over HTTPS only, preventing SSL stripping attacks.
+- **CSP (Content Security Policy)**: Mitigates XSS by defining allowed sources for scripts, styles, and images.
+- **CORS (Cross-Origin Resource Sharing)**: Restricts API access to trusted domains, preventing unauthorized cross-site requests.
+
+### Configuration
+
+**HSTS & CSP (`next.config.ts`):**
+```typescript
+{
+  key: 'Strict-Transport-Security',
+  value: 'max-age=63072000; includeSubDomains; preload',
+},
+{
+  key: 'Content-Security-Policy',
+  value: "default-src 'self'; script-src 'self' 'https://apis.google.com'; img-src 'self' data:; style-src 'self' 'unsafe-inline';",
+}
+```
+
+**CORS (`middleware.ts`):**
+```typescript
+const allowedOrigins = ["http://localhost:3000"];
+if (origin && allowedOrigins.includes(origin)) {
+  response.headers.set("Access-Control-Allow-Origin", origin);
+}
+```
+
+### Verification
+Security headers can be verified in Browser DevTools (Network tab -> Response Headers) or via [securityheaders.com](https://securityheaders.com).
+
+### Reflection
+- **HTTPS Enforcement**: Using HSTS ensures all user data is encrypted and protects against protocol downgrade attacks.
+- **Third-Party Impact**: A strict CSP can block essential third-party services (like analytics or fonts). Our setup permits Google APIs while maintaining a strong `'self'` baseline.
+- **Security vs Flexibility**: By using `unsafe-inline` for styles, we allow Next.js optimizations while maintaining strict control over executable scripts and data origins.
+
 ## Authentication & Security (JWT)
 
 ### JWT Structure
