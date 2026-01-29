@@ -381,12 +381,78 @@ The API returns appropriate HTTP status codes:
 | 409  | Conflict                  | Resource already exists           |
 | 500  | Internal Server Error     | Unexpected issue                  |
 
-## Authentication System
+## Security Headers (HSTS, CSP, CORS)
 
-### Flow
-1. **Signup** → User registers → Password hashed with bcrypt (10 salt rounds)
-2. **Login** → Credentials verified → JWT token generated (1-hour expiry)
-3. **Protected Routes** → Token validated → Access granted/denied
+### Overview
+- **HSTS (HTTP Strict Transport Security)**: Forces browsers to communicate over HTTPS only, preventing SSL stripping attacks.
+- **CSP (Content Security Policy)**: Mitigates XSS by defining allowed sources for scripts, styles, and images.
+- **CORS (Cross-Origin Resource Sharing)**: Restricts API access to trusted domains, preventing unauthorized cross-site requests.
+
+### Configuration
+
+**HSTS & CSP (`next.config.ts`):**
+```typescript
+{
+  key: 'Strict-Transport-Security',
+  value: 'max-age=63072000; includeSubDomains; preload',
+},
+{
+  key: 'Content-Security-Policy',
+  value: "default-src 'self'; script-src 'self' 'https://apis.google.com'; img-src 'self' data:; style-src 'self' 'unsafe-inline';",
+}
+```
+
+**CORS (`middleware.ts`):**
+```typescript
+const allowedOrigins = ["http://localhost:3000"];
+if (origin && allowedOrigins.includes(origin)) {
+  response.headers.set("Access-Control-Allow-Origin", origin);
+}
+```
+
+### Verification
+Security headers can be verified in Browser DevTools (Network tab -> Response Headers) or via [securityheaders.com](https://securityheaders.com).
+
+### Reflection
+- **HTTPS Enforcement**: Using HSTS ensures all user data is encrypted and protects against protocol downgrade attacks.
+- **Third-Party Impact**: A strict CSP can block essential third-party services (like analytics or fonts). Our setup permits Google APIs while maintaining a strong `'self'` baseline.
+- **Security vs Flexibility**: By using `unsafe-inline` for styles, we allow Next.js optimizations while maintaining strict control over executable scripts and data origins.
+
+## Authentication & Security (JWT)
+
+### JWT Structure
+JSON Web Tokens (JWT) consist of three parts separated by dots:
+- **Header**: Contains the algorithm (`HS256`) and token type (`JWT`).
+- **Payload**: Contains claims such as user `id`, `email`, `role`, and expiration timestamps (`iat`, `exp`).
+- **Signature**: Created by hashing the encoded header and payload with a server-side secret, ensuring the token's integrity and authenticity.
+
+### Access vs Refresh Tokens
+- **Access Token (15m)**: Short-lived token used for immediate authentication in API requests. It minimizes the damage if a token is stolen.
+- **Refresh Token (7d)**: Long-lived token used to generate new access tokens. It allows users to stay logged in without re-entering credentials frequently.
+
+### Storage & Security Choices
+- **Access Token**: Sent in the response body and stored in application memory (state) to prevent persistence-based XSS attacks.
+- **Refresh Token**: Stored in an **HTTP-only, Secure, SameSite: Strict** cookie. This prevents client-side scripts from accessing it (XSS) and restricts cross-site usage (CSRF).
+
+### Refresh Flow & Evidence
+When an access token expires:
+1. The client calls `/api/auth/refresh`.
+2. The server verifies the Refresh Token from the cookie against the database.
+3. If valid, the server performs **Token Rotation**:
+   - Generates a new Access Token.
+   - Generates a new Refresh Token and updates the database record.
+   - Sets a new HTTP-only cookie.
+4. **Evidence**: Server logs show `Refresh error` if invalid or successful database updates during the process.
+
+### Security Reflection: XSS & CSRF
+- **XSS (Cross-Site Scripting)**: Mitigated by using `httpOnly` cookies for refresh tokens. Even if a script is injected, it cannot read the token.
+- **CSRF (Cross-Site Request Forgery)**: Mitigated by `sameSite: "strict"`. The browser will only send the cookie if the request originates from the same site, preventing unauthorized actions from third-party sites.
+
+### Auth Flow
+1. **Signup** → User registers → Password hashed with bcrypt (10 salt rounds).
+2. **Login** → Credentials verified → JWT tokens generated → Refresh token stored in DB.
+3. **Protected Routes** → Access Token validated via middleware/utility.
+4. **Logout** → Refresh token invalidated in DB and cookie cleared.
 
 ### API Examples
 
@@ -429,10 +495,15 @@ Response:
 - Salt rounds: 10
 - Passwords never stored in plain text
 
-**JWT Token:**
+**JWT Token (Access):**
 - Algorithm: HS256
-- Expiry: 1 hour
-- Payload: `{id, email, iat, exp}`
+- Expiry: 15 minutes
+- Payload: `{id, email, role, iat, exp}`
+
+**JWT Token (Refresh):**
+- Algorithm: HS256
+- Expiry: 7 days
+- Storage: HTTP-Only Cookie + Database
 
 ### Token Management
 

@@ -22,7 +22,7 @@ CREATE TABLE "Business" (
     "area" VARCHAR(100) NOT NULL,
     "description" TEXT,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "owner_id" TEXT NOT NULL,
+    "owner_id" UUID NOT NULL,
     "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(6) NOT NULL,
 
@@ -37,7 +37,7 @@ CREATE TABLE "Product" (
     "price" DECIMAL(10,2) NOT NULL,
     "stock" INTEGER NOT NULL DEFAULT 0,
     "category" VARCHAR(100) NOT NULL,
-    "business_id" TEXT NOT NULL,
+    "business_id" UUID NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(6) NOT NULL,
@@ -48,8 +48,8 @@ CREATE TABLE "Product" (
 -- CreateTable
 CREATE TABLE "Order" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "user_id" TEXT NOT NULL,
-    "business_id" TEXT NOT NULL,
+    "user_id" UUID NOT NULL,
+    "business_id" UUID NOT NULL,
     "total_amount" DECIMAL(10,2) NOT NULL,
     "status" VARCHAR(50) NOT NULL,
     "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -61,8 +61,8 @@ CREATE TABLE "Order" (
 -- CreateTable
 CREATE TABLE "OrderItem" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "order_id" TEXT NOT NULL,
-    "product_id" TEXT NOT NULL,
+    "order_id" UUID NOT NULL,
+    "product_id" UUID NOT NULL,
     "quantity" INTEGER NOT NULL,
     "price" DECIMAL(10,2) NOT NULL,
     "created_at" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -73,8 +73,8 @@ CREATE TABLE "OrderItem" (
 -- CreateTable
 CREATE TABLE "Payment" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
-    "order_id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
+    "order_id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
     "amount" DECIMAL(10,2) NOT NULL,
     "method" VARCHAR(50) NOT NULL,
     "status" VARCHAR(50) NOT NULL,
