@@ -6,7 +6,7 @@ import { logger } from '../../../lib/logger';
 import { userSchema } from '../../../lib/schemas/userSchema';
 import { ZodError } from 'zod';
 import { prisma } from '../../../lib/prisma';
-import redis from '../../../lib/redis';
+// import redis from '../../../lib/redis'; // Redis disabled temporarily
 
 // Mock data for demonstration
 let users = [
@@ -19,22 +19,14 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-// GET /api/users - Get all users with Redis caching
+// GET /api/users - Get all users without Redis caching (temporary fix)
 export async function GET() {
   try {
-    const cacheKey = "users:list";
-    const cachedData = await redis.get(cacheKey);
-
-    if (cachedData) {
-      logger.info("Cache Hit");
-      return sendSuccess(JSON.parse(cachedData), 'Users fetched successfully (from cache)');
-    }
-
-    logger.info("Cache Miss - Fetching from DB");
-    const dbUsers = await prisma.user.findMany();
-
-    // Cache data for 60 seconds (TTL)
-    await redis.set(cacheKey, JSON.stringify(dbUsers), "EX", 60);
+    logger.info("Fetching users from database");
+    
+    const dbUsers = await prisma.users.findMany({
+      select: { id: true, phone: true, email: true, is_verified: true },
+    });
 
     return sendSuccess(dbUsers, 'Users fetched successfully');
   } catch (error) {
@@ -74,13 +66,13 @@ export async function POST(request: NextRequest) {
       'User created successfully',
       201
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof ZodError) {
       return sendError(
         'Validation failed',
         ERROR_CODES.VALIDATION_ERROR,
         400,
-        error.issues.map((issue: any) => ({
+        error.issues.map((issue) => ({
           field: issue.path[0],
           message: issue.message,
         }))
@@ -126,13 +118,13 @@ export async function PUT(request: NextRequest) {
       { data: users[userIndex] },
       'User updated successfully'
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof ZodError) {
       return sendError(
         'Validation failed',
         ERROR_CODES.VALIDATION_ERROR,
         400,
-        error.issues.map((issue: any) => ({
+        error.issues.map((issue) => ({
           field: issue.path[0],
           message: issue.message,
         }))
@@ -166,7 +158,7 @@ export async function DELETE(request: NextRequest) {
       {},
       'User deleted successfully'
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleError(error, 'DELETE /api/users');
   }
 }

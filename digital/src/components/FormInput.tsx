@@ -2,7 +2,7 @@ interface FormInputProps {
   label: string;
   name: string;
   type?: string;
-  register: any;
+  register: (name: string) => { [key: string]: unknown };
   error?: string;
 }
 
