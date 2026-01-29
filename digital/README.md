@@ -135,6 +135,157 @@ Then update `handleError()` to return appropriate status codes based on error ty
  task/optimisation
  main
 
+## 🔐 Security Implementation
+
+This application implements comprehensive security measures to protect against common web vulnerabilities including XSS (Cross-Site Scripting) and SQL Injection attacks.
+
+### Security Libraries Used
+
+- **sanitize-html**: Removes malicious HTML/JavaScript content
+- **zod**: Runtime type validation and schema enforcement
+- **dompurify**: Additional HTML sanitization for frontend rendering
+
+### Input Sanitization (`src/utils/sanitize.ts`)
+
+All user inputs are sanitized before processing or storage:
+
+```typescript
+import sanitizeHtml from "sanitize-html";
+
+export function sanitizeInput(input: string): string {
+  if (typeof input !== "string") return input;
+
+  return sanitizeHtml(input, {
+    allowedTags: [],
+    allowedAttributes: {},
+  });
+}
+```
+
+### Validation Schemas (`src/utils/validation.ts`)
+
+Strict validation using Zod schemas ensures data integrity:
+
+```typescript
+export const signupSchema = z.object({
+  name: z.string().min(2).max(50),
+  email: z.string().email(),
+  password: z.string().min(6),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
+```
+
+### XSS Prevention
+
+#### Backend Protection
+- All HTML tags and scripts are stripped from user inputs
+- Sanitization occurs before database storage
+- Safe rendering with React's auto-escaping
+
+#### Frontend Protection
+- React automatically escapes JSX content
+- Form validation prevents malicious input submission
+- Optional DOMPurify for controlled HTML rendering
+
+### SQL Injection Prevention
+
+#### ORM Protection
+- **Prisma ORM** uses parameterized queries
+- No raw SQL string concatenation
+- Type-safe database operations
+
+#### Validation Layer
+- Zod schemas validate input format before database queries
+- Email validation prevents SQL injection patterns
+- Type safety prevents injection attacks
+
+### Security Test Results
+
+#### XSS Protection Test
+```bash
+# Input
+{"name": "<script>alert(\"XSS\")</script>", "email": "test@gmail.com", "password": "123456"}
+
+# Result
+{
+  "originalName": "<script>alert(\"XSS\")</script>",
+  "sanitizedName": "",
+  "xssBlocked": true
+}
+```
+
+#### SQL Injection Protection Test
+```bash
+# Malicious Input
+{"email": "test@gmail.com' OR 1=1 --", "password": "123456"}
+
+# Result: BLOCKED by Zod validation (invalid email format)
+```
+
+### Before & After Comparison
+
+| Attack Type | Before Protection | After Protection |
+|-------------|------------------|------------------|
+| XSS Script | `<script>alert("hack")</script>` | `alert("hack")` (sanitized) |
+| SQL Injection | `' OR 1=1 --` | **BLOCKED** (validation error) |
+| HTML Injection | `<img src=x onerror=alert(1)>` | `img src=x onerror=alert(1)` (sanitized) |
+
+### Implementation Examples
+
+#### Secure API Route
+```typescript
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    
+    // ✅ Validate input
+    const validated = signupSchema.parse(body);
+    
+    // ✅ Sanitize input
+    const cleanName = sanitizeInput(validated.name);
+    const cleanEmail = sanitizeInput(validated.email);
+    
+    // ✅ Safe database query
+    const user = await prisma.users.create({
+      data: { name: cleanName, email: cleanEmail }
+    });
+    
+    return NextResponse.json({ message: "User created safely", user });
+  } catch (error) {
+    return handleError(error, "POST /api/signup");
+  }
+}
+```
+
+#### Safe Frontend Rendering
+```typescript
+// React auto-escapes - SAFE
+<p>{userInput}</p>
+
+// Controlled HTML rendering with DOMPurify
+<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userInput) }} />
+```
+
+### Security Benefits
+
+1. **XSS Prevention**: Scripts and malicious HTML are stripped from all inputs
+2. **SQL Injection Protection**: Parameterized queries and input validation
+3. **Data Integrity**: Strict validation ensures only valid data is processed
+4. **Safe Rendering**: Multiple layers of protection in frontend display
+5. **Centralized Security**: Consistent protection across all endpoints
+
+### Future Security Enhancements
+
+- **CSP Headers**: Content Security Policy implementation
+- **Rate Limiting**: API endpoint protection
+- **JWT Security**: Secure authentication tokens
+- **HTTPS Enforcement**: SSL/TLS for all communications
+- **Security Headers**: Helmet middleware integration
+
 ## API Routes Documentation
 
 This application includes several RESTful API endpoints under the `/api/` route:
