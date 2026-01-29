@@ -13,6 +13,7 @@ interface User {
   password: string;
   is_verified: boolean;
   created_at: string;
+  role?: string;
 }
 
 // Mock data for demonstration
@@ -95,12 +96,13 @@ export async function POST(request: NextRequest) {
       password: validatedData.password, // In a real app, this should be hashed
       is_verified: false, // New signups are not verified initially
       created_at: new Date().toISOString(),
+      role: 'viewer', // Assign default role to new users
     };
 
     users.push(newUser);
 
-    // Don't return the password in the response
-    const { password, ...userWithoutPassword } = newUser;
+    // Don't return the password and role in the response for security
+    const { password, role, ...userWithoutPassword } = newUser;
 
     return sendSuccess(
       { data: userWithoutPassword },

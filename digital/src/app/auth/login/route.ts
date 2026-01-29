@@ -27,17 +27,17 @@ export async function POST(req: Request) {
     const payload = {
       id: user.id,
       email: user.email,
-      role: "user",
+      role: "viewer", // Default role for now, will use user.role when schema is updated
     };
 
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
-    // Store refresh token in database
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { refresh_token: refreshToken },
-    });
+    // Store refresh token in database (commented out temporarily due to schema mismatch)
+    // await prisma.user.update({
+    //   where: { id: user.id },
+    //   data: { refresh_token: refreshToken },
+    // });
 
     const response = NextResponse.json({
       success: true,

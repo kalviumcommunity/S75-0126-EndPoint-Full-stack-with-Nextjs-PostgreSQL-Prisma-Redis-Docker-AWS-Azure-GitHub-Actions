@@ -861,3 +861,64 @@ We implemented three types of feedback patterns to address these concerns:
 - Lower support requests due to clearer error messages
 - Better perceived performance through optimistic updates
 - Improved accessibility for screen reader users
+
+
+## Loading and Error States Implementation
+
+### Why Loading & Error States Improve UX
+
+Handling loading and error states gracefully improves user experience by:
+- **Preventing Confusion**: Users understand what's happening instead of staring at blank screens
+- **Building Trust**: Transparent feedback shows the app is responsive and reliable
+- **Reducing Anxiety**: Clear error messages help users recover from issues
+- **Enhancing Performance Perception**: Skeleton loaders give structure previews before content loads
+
+### Implementation Summary
+
+**Next.js App Router Pattern:**
+- `loading.tsx` files provide automatic loading fallbacks for each route
+- `error.tsx` files handle client-side errors with retry functionality
+- Skeleton loaders use Tailwind's `animate-pulse` for smooth visual feedback
+- Error boundaries display user-friendly messages with reload/try-again options
+
+**Routes Covered:**
+- `/users` - User list with skeleton loader
+- `/business` - Business cards with skeleton loader
+- `/business/dashboard` - Dashboard skeleton with stats placeholders
+- `/dashboard` - User dashboard skeleton
+- `/admin` - Admin panel skeleton
+- Root `/` - Global loading state
+
+### Evidence
+
+**Loading States:**
+- Skeleton loaders show content structure before data arrives
+- Pulse animations provide visual feedback during fetch delays
+- Route-specific skeletons match actual content layout
+
+**Error States:**
+- Clear error messages with reload and retry buttons
+- Consistent styling across all error boundaries
+- Graceful degradation when API calls fail
+
+**Success States:**
+- Smooth transition from skeleton to actual content
+- No flash of unstyled content (FOUC)
+- Immediate visual feedback on user actions
+
+### Reflection
+
+**User Trust:**
+- Loading states signal that the app is working, not broken
+- Error recovery options (reload/try again) empower users
+- Consistent feedback patterns build confidence in the interface
+
+**App Resilience:**
+- Error boundaries prevent app crashes from unhandled exceptions
+- Graceful fallbacks maintain usability during partial failures
+- Automatic retries improve success rates for transient errors
+
+**Developer Experience:**
+- Standardized patterns reduce boilerplate code
+- Built-in Next.js features minimize custom error handling
+- Clear separation of concerns (loading vs error vs success)

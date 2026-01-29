@@ -13,6 +13,7 @@ model User {
   email       String   @unique @db.VarChar(255)
   name        String   @db.VarChar(100)
   password    String   @db.VarChar(255)
+  role        String   @default("viewer") @db.VarChar(20)
   refresh_token String? @db.Text
   is_verified Boolean  @default(false)
   created_at  DateTime @default(now()) @db.Timestamp(6)
