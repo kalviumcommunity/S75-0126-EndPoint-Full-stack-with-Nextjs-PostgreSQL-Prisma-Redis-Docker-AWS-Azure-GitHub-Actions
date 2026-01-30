@@ -51,8 +51,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (res.ok) {
       const data = await res.json();
       setAccessToken(data.accessToken);
-      // Mock user setting - in reality, decode the JWT
-      setUser({ id: "1", email, role: "user" });
+      // Set user data from the response
+      if (data.user) {
+        setUser({ id: data.user.id, email: data.user.email, role: data.user.role || "user" });
+      } else {
+        // Fallback if user data not in response
+        setUser({ id: "1", email, role: "user" });
+      }
       console.log("User logged in:", email);
     } else {
       throw new Error("Login failed");
