@@ -569,4 +569,101 @@ Provider → Context → Hook → Component
 ✔ Providers wrapped globally
 ✔ State visibly changes
 ✔ README completed
+
+---
+
+## Secret Management
+
+Secrets are stored in **AWS Secrets Manager** instead of `.env` files, ensuring sensitive data is never committed to version control.
+
+### Storage Strategy
+
+The following secrets are managed in AWS Secrets Manager:
+- `DATABASE_URL` - PostgreSQL connection string
+- `JWT_SECRET` - JSON Web Token signing key
+
+### How It Works
+
+1. **Storage**: Secrets are stored encrypted in AWS Secrets Manager under the name `nextjs/app-secrets`
+2. **Retrieval**: The app fetches secrets at runtime using the AWS SDK (`lib/secrets.ts`)
+3. **Configuration**: Only the secret ARN and AWS region are stored in `.env.local` (non-sensitive references)
+
+### Implementation Files
+
+- **src/lib/secrets.ts** - Utility function to fetch secrets from AWS
+- **src/app/api/test/route.ts** - Test endpoint to verify secrets are loaded correctly
+- **.env.local** - Contains only `AWS_REGION` and `SECRET_ARN` (no actual passwords)
+
+### Access Control (IAM)
+
+An IAM policy with least privilege access is attached to your app's role:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "secretsmanager:GetSecretValue",
+      "Resource": "arn:aws:secretsmanager:ap-south-1:123456789:secret:nextjs/app-secrets*"
+    }
+  ]
+}
+```
+
+**Important**: The policy grants only `GetSecretValue` permission and is scoped to the specific secret.
+
+### Setup Steps
+
+1. **Create Secret in AWS**
+   - Go to AWS Console → Secrets Manager → Store a new secret
+   - Choose "Other type of secret"
+   - Add your secrets as JSON:
+     ```json
+     {
+       "DATABASE_URL": "your-db-connection-string",
+       "JWT_SECRET": "your-jwt-signing-key"
+     }
+     ```
+   - Name it: `nextjs/app-secrets`
+   - Copy the ARN
+
+2. **Update .env.local**
+   ```
+   AWS_REGION=ap-south-1
+   SECRET_ARN=arn:aws:secretsmanager:ap-south-1:123456789:secret:nextjs/app-secrets
+   ```
+
+3. **Configure IAM**
+   - Create an IAM policy with the least privilege statement above
+   - Attach to your EC2 role, ECS task role, or IAM user
+
+4. **Test Retrieval**
+   ```bash
+   npm run dev
+   # Visit http://localhost:3000/api/test
+   ```
+   Expected response:
+   ```json
+   {
+     "db": "Loaded",
+     "jwt": "Loaded"
+   }
+   ```
+
+### Security Benefits
+
+✔ **Encrypted at rest** - AWS handles encryption  
+✔ **Encrypted in transit** - AWS SDK uses TLS  
+✔ **Not in version control** - Never committed to Git  
+✔ **Least privilege access** - IAM policy scoped to specific secret  
+✔ **Audit trail** - CloudTrail logs all secret access  
+✔ **Rotation ready** - Can enable automatic rotation with Lambda  
+
+### Future Improvements
+
+- Enable AWS automatic secret rotation with Lambda
+- Set up CloudTrail monitoring for secret access
+- Implement secret caching to reduce API calls
+- Add secret versioning for safer updates
 ````
