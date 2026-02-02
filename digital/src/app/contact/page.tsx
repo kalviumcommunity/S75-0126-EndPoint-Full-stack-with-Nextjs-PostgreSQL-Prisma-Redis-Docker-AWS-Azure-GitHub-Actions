@@ -19,6 +19,7 @@ export default function ContactPage() {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactSchema),
   });
@@ -26,6 +27,7 @@ export default function ContactPage() {
   const onSubmit = (data: ContactFormData) => {
     console.log(data);
     alert("Message Sent!");
+    reset();
   };
 
   return (

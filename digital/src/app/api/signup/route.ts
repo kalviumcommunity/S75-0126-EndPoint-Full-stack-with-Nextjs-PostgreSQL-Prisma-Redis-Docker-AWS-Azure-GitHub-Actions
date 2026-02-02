@@ -15,6 +15,7 @@ interface User {
   password: string;
   is_verified: boolean;
   created_at: string;
+  role?: string;
 }
 
 // Mock data
@@ -80,13 +81,28 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
+ signup-api
     // ✅ Validate
     const validated = signupSchema.parse(body);
+
+    // Create new user
+    const newUser: User = {
+      id: generateId(),
+      phone: validatedData.phone,
+      email: validatedData.email,
+      name: validatedData.name,
+      password: validatedData.password, // In a real app, this should be hashed
+      is_verified: false, // New signups are not verified initially
+      created_at: new Date().toISOString(),
+      role: 'viewer', // Assign default role to new users
+    };
+ main
 
     // ✅ Sanitize
     const cleanName = sanitizeInput(validated.name) as string;
     const cleanEmail = sanitizeInput(validated.email) as string;
 
+ signup-api
     // ✅ Safe DB query (Prisma protects against injections)
     const user = await prisma.users.create({
       data: {
@@ -95,6 +111,10 @@ export async function POST(request: NextRequest) {
         password: validated.password, // hash before production
       },
     });
+
+    // Don't return the password and role in the response for security
+    const { password, role, ...userWithoutPassword } = newUser;
+ main
 
     // Remove password before returning
     const { password: _password, ...safeUser } = user;
