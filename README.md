@@ -1,4 +1,3 @@
-
 # **Project Plan: DigitalCred**
 
 ### *A Low-Friction Digital Credibility System for Small-Scale Entrepreneurs*
@@ -450,7 +449,7 @@ The API returns appropriate HTTP status codes:
 
 | Code | Meaning                   | Usage                             |
 |------|---------------------------|-----------------------------------|
-| 200  | OK                        | Successful GET                      |
+| 200  | OK                        | Successful GET                    |
 | 201  | Created                   | POST success                      |
 | 400  | Bad Request               | Invalid input                     |
 | 404  | Not Found                 | Resource missing                  |
@@ -796,3 +795,88 @@ export class ErrorHandler {
 ```
 
 Sandbox mode, rate limits, and bounce handling considered
+
+# Global State Management with Context API & Custom Hooks
+
+## 1️⃣ Explanation
+
+### Why AuthContext exists
+AuthContext manages authentication state (user info, login/logout) globally, so any component can access or update the user without prop drilling. This centralizes auth logic and makes login/logout available everywhere.
+
+### Why UIContext exists
+UIContext stores UI-related state (theme, sidebar open/close) globally. This allows consistent UI behavior and easy toggling of theme/sidebar from any component, avoiding duplicated state.
+
+### Why custom hooks are used
+Custom hooks (useAuth, useUI) provide a clean, reusable way to access context values and actions. They encapsulate error handling and context logic, so components only import the hook, not the context directly.
+
+## 2️⃣ Code Structure
+
+```
+app/
+ ├── layout.tsx         # Providers wrapped globally
+ ├── page.tsx           # Uses hooks to show state & actions
+context/
+ ├── AuthContext.tsx    # Auth state, login/logout, provider
+ ├── UIContext.tsx      # Theme/sidebar state, toggles, provider
+hooks/
+ ├── useAuth.ts         # Custom hook for AuthContext
+ ├── useUI.ts           # Custom hook for UIContext
+```
+
+**Flow:**
+Provider → Context → Hook → Component
+
+- Providers wrap the app in layout.tsx
+- Contexts store and provide state/actions
+- Hooks expose context values/actions to components
+- Components use hooks to read/update state
+
+## 3️⃣ Proof
+
+- Console logs show when login, logout, theme, or sidebar state changes
+- UI updates instantly on login/logout, theme toggle, sidebar toggle
+- Example (see app/page.tsx):
+  - Click Login → user appears, console logs
+  - Click Logout → user removed, console logs
+  - Toggle Theme/Sidebar → UI and logs update
+
+## 4️⃣ Reflection
+
+- **Performance:** Context consumers only re-render when their subscribed values change, keeping updates efficient.
+- **Scalability:** New global states (e.g., notifications) can be added as new contexts/hooks without changing existing code.
+- **Avoiding prop drilling:** No need to pass state/actions through many component layers—hooks access context directly.
+- **Possible pitfalls:** Overusing context for high-frequency updates can cause unnecessary re-renders. For large apps, split state into multiple contexts or use useReducer for complex logic.
+- **Debugging:** Use React DevTools to inspect context values and check for unnecessary re-renders.
+
+---
+
+✔ AuthContext working
+✔ UIContext working
+✔ Custom hooks created
+✔ Providers wrapped globally
+✔ State visibly changes
+✔ README completed
+
+# React Hook Form + Zod Forms
+
+## Setup
+- Used react-hook-form for form handling
+- Used Zod for schema validation
+- Integrated using zodResolver
+
+## Features
+- Signup form with validation
+- Contact form with reusable inputs
+- Error handling
+
+## Accessibility
+- Labels added
+- aria-invalid used
+- Keyboard friendly
+
+## Screenshots
+(Add screenshots here)
+
+## Reflection
+Reusable components reduce duplication.
+Zod ensures clean and predictable data.
