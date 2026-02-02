@@ -1,43 +1,23 @@
 const nextJest = require('next/jest');
 
-<<<<<<< HEAD
-const createJestConfig = nextJest({
-  dir: './',
-});
+const createJestConfig = nextJest({ dir: './' });
 
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jsdom',
   collectCoverage: true,
+  testMatch: [
+    '**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)',
+    '!**/__tests__/setup.(js|jsx|ts|tsx)',
+    '!**/__tests__/test-utils.(js|jsx|ts|tsx)',
+  ],
 
-=======
-const createJestConfig = nextJest({ dir: './' });
-
-const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts'],
-  testEnvironment: 'jsdom',
-  collectCoverage: true,
->>>>>>> origin/main
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.test.{js,jsx,ts,tsx}',
     '!src/pages/_*.{js,jsx,ts,tsx}',
   ],
-<<<<<<< HEAD
 
-  // Temporarily disable coverage thresholds for demo
-  // coverageThreshold: {
-  //   global: {
-  //     branches: 80,
-  //     functions: 80,
-  //     lines: 80,
-  //     statements: 80,
-  //   },
-  // },
-};
-
-module.exports = createJestConfig(customJestConfig);
-=======
   coverageThreshold: {
     global: {
       branches: 80,
@@ -55,4 +35,3 @@ module.exports = createJestConfig(customJestConfig);
 };
 
 module.exports = createJestConfig(customJestConfig);
->>>>>>> origin/main
