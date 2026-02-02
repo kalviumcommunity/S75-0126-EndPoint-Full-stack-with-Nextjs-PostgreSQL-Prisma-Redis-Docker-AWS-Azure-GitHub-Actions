@@ -3,14 +3,21 @@ const nextJest = require('next/jest');
 const createJestConfig = nextJest({ dir: './' });
 
 const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jsdom',
   collectCoverage: true,
+  testMatch: [
+    '**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)',
+    '!**/__tests__/setup.(js|jsx|ts|tsx)',
+    '!**/__tests__/test-utils.(js|jsx|ts|tsx)',
+  ],
+
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.test.{js,jsx,ts,tsx}',
     '!src/pages/_*.{js,jsx,ts,tsx}',
   ],
+
   coverageThreshold: {
     global: {
       branches: 80,
