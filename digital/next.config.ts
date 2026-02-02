@@ -1,11 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
- secrets-manager
   /* config options here */
   turbopack: {
     root: ".",
-
+  },
   async headers() {
     return [
       {
@@ -22,7 +21,6 @@ const nextConfig: NextConfig = {
         ],
       },
     ];
- main
   },
 };
 
