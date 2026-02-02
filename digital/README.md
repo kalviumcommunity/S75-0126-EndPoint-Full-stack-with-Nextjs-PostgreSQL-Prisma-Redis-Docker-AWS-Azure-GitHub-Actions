@@ -22,6 +22,94 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## 🧪 Testing Setup
+
+This project uses Jest and React Testing Library for comprehensive testing.
+
+### Setup
+```bash
+npm install
+npm test
+```
+
+### Test Structure
+```
+project/
+ ├─ src/
+ ├─ __tests__/
+ ├─ jest.config.js
+ ├─ jest.setup.js
+```
+
+### Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage
+npm test -- --coverage
+
+# Run tests in watch mode
+npm test -- --watch
+```
+
+### Test Examples
+
+#### Utility Function Tests
+```typescript
+// __tests__/sum.test.ts
+import { sum } from '../src/utils/sum';
+
+test('adds two numbers', () => {
+  expect(sum(2, 3)).toBe(5);
+});
+```
+
+#### React Component Tests
+```typescript
+// __tests__/Button.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import Button from '../src/components/Button';
+
+test('renders button and handles click', () => {
+  const handleClick = jest.fn();
+  render(<Button label="Click Me" onClick={handleClick} />);
+  
+  const button = screen.getByText('Click Me');
+  fireEvent.click(button);
+  
+  expect(handleClick).toHaveBeenCalledTimes(1);
+});
+```
+
+#### Security Tests
+```typescript
+// __tests__/sanitize.test.ts
+import { sanitizeInput } from '../src/utils/sanitize';
+
+test('sanitizes HTML tags', () => {
+  const maliciousInput = '<script>alert("XSS")</script>';
+  const sanitized = sanitizeInput(maliciousInput);
+  expect(sanitized).toBe('');
+});
+```
+
+### Coverage
+
+Current coverage targets (can be enabled in jest.config.js):
+- **Branches**: 80%
+- **Functions**: 80%
+- **Lines**: 80%
+- **Statements**: 80%
+
+### Continuous Integration
+
+Tests automatically run on GitHub Actions for every push and pull request. See `.github/workflows/test.yml` for configuration.
+
+### Reflection
+
+Unit testing ensures component reliability and prevents regressions. The security tests validate that XSS protection and input sanitization work correctly. Future work includes integration and E2E testing.
+
  errHandling
 ## Centralized Error Handling & Logging
 
