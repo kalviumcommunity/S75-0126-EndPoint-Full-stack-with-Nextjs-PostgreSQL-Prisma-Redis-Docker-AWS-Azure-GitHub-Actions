@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from '@/config/swagger';
 
 /**
