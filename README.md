@@ -795,3 +795,28 @@ export class ErrorHandler {
 ```
 
 Sandbox mode, rate limits, and bounce handling considered
+
+
+## CI/CD Workflow
+
+### Purpose and File Path
+
+The CI/CD pipeline automates code quality checks, testing, building, and deployment processes. Located at `.github/workflows/ci.yml`, it ensures every code change meets quality standards before reaching production.
+
+### Pipeline Stages
+
+1. **Lint** - Runs ESLint to enforce code style and catch syntax errors
+2. **Test** - Executes unit tests with coverage reporting using Jest
+3. **Build** - Compiles the Next.js application to verify build integrity
+4. **Deploy** - Automatically deploys to production when merging to main branch
+
+### Key Features
+
+- **Build Caching**: Uses npm cache to speed up dependency installation
+- **Concurrency Management**: Cancels previous runs on same branch to prevent conflicts
+- **Secure Secrets**: AWS and Azure credentials stored as encrypted GitHub secrets
+- **Conditional Deployment**: Only deploys to production from main branch
+
+### Reflection
+
+The pipeline optimizes build speed through caching strategies and manages parallel jobs efficiently. Secrets are securely handled via GitHub's encrypted secrets store, ensuring credentials never appear in logs or code. This automated workflow reduces manual deployment errors and maintains consistent quality standards across all environments.
