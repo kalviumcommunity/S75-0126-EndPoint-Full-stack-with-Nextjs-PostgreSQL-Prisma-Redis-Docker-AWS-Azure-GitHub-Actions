@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest"
+    "test": "jest",
+    "docs": "echo 'Swagger docs available at http://localhost:3000/api/docs'"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx}": [
@@ -36,6 +37,8 @@
     "react-hook-form": "^7.71.1",
     "react-hot-toast": "^2.6.0",
     "sanitize-html": "^2.17.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0",
     "swr": "^2.3.8",
     "zod": "^4.3.6"
   },
