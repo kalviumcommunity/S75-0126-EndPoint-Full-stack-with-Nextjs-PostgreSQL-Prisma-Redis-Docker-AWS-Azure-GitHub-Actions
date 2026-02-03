@@ -1,26 +1,171 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔐 Digital Credential - Full-Stack Application
 
-## Getting Started
+A comprehensive full-stack application for managing digital credentials with advanced features including RBAC, file uploads, transaction management, and real-time notifications.
 
-First, install dependencies:
+**Version:** 1.0.0  
+**Last Updated:** February 2026  
+**Tech Stack:** Next.js 16 | React 19 | PostgreSQL | Prisma | Redis | AWS S3
 
+---
+
+## 📚 Documentation
+
+### Quick Links
+- 🔗 **API Documentation:** [Swagger UI](http://localhost:3000/api/docs)
+- 📖 **Architecture Guide:** [ARCHITECTURE.md](../ARCHITECTURE.md)
+- 📝 **Changelog:** [CHANGELOG.md](../CHANGELOG.md)
+- 🚀 **Getting Started:** See below
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- npm 8+ or yarn
+- PostgreSQL 12+
+- Redis 6+ (optional, for caching)
+
+### Installation
+
+**Step 1:** Install dependencies
 ```bash
 npm install
 ```
 
-Then, run the development server:
-
+**Step 2:** Configure environment variables
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Step 3:** Set up database
+```bash
+npx prisma migrate dev
+npx prisma db seed
+```
+
+**Step 4:** Run development server
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+### Viewing Documentation
+
+Once the development server is running:
+- **Swagger API Docs:** Visit [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+- **System Architecture:** See [ARCHITECTURE.md](../ARCHITECTURE.md)
+- **API Changelog:** See [CHANGELOG.md](../CHANGELOG.md)
+
+---
+
+## 🔌 API Documentation
+
+All API endpoints are fully documented with Swagger/OpenAPI 3.0.
+
+### How to Access
+1. Run the development server: `npm run dev`
+2. Visit [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+3. Explore and test endpoints directly in the browser
+4. View request/response schemas
+5. Test with authentication tokens
+
+### Key API Endpoints
+
+#### Authentication
+- `POST /api/auth/signup` - User registration
+- `POST /api/login` - User login
+- `POST /api/auth/refresh` - Refresh JWT token
+- `POST /api/otp/generate` - Generate OTP
+- `POST /api/otp/verify` - Verify OTP
+
+#### Users
+- `GET /api/users` - List all users (Admin only)
+- `GET /api/users/:id` - Get user details
+- `PUT /api/users/:id` - Update user
+- `DELETE /api/users/:id` - Delete user
+
+#### Businesses
+- `GET /api/businesses` - List all businesses
+- `POST /api/businesses` - Create new business
+- `GET /api/businesses/:id` - Get business details
+- `PUT /api/businesses/:id` - Update business
+- `DELETE /api/businesses/:id` - Delete business
+
+#### Files & Uploads
+- `POST /api/upload` - Get S3 presigned upload URL
+- `POST /api/files` - Register file metadata
+- `GET /api/files/:id` - Get file details
+- `DELETE /api/files/:id` - Delete file
+
+#### Transactions
+- `GET /api/transactions` - List transactions
+- `POST /api/transactions` - Create transaction
+- `GET /api/transactions/:id` - Get transaction details
+
+### Adding Swagger Documentation
+
+To document a new API endpoint, add JSDoc comments:
+
+```typescript
+/**
+ * @swagger
+ * /api/resource:
+ *   get:
+ *     summary: Get resource
+ *     tags: [Resource]
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ *       401:
+ *         description: Unauthorized
+ */
+export async function GET(req: NextRequest) {
+  // Implementation
+}
+```
+
+See [ARCHITECTURE.md](../ARCHITECTURE.md#3-system-components) for full API documentation details.
+
+---
+
+## 🏗️ Project Structure
+
+```
+digital/
+├── src/
+│   ├── app/
+│   │   ├── api/                 # API routes
+│   │   ├── auth/                # Authentication pages
+│   │   ├── dashboard/           # Dashboard pages
+│   │   ├── admin/               # Admin pages
+│   │   └── layout.tsx           # Root layout
+│   ├── components/              # Reusable components
+│   ├── context/                 # React context
+│   ├── hooks/                   # Custom hooks
+│   ├── lib/                     # Utilities and helpers
+│   ├── utils/                   # Utility functions
+│   └── config/                  # Configuration
+├── prisma/
+│   ├── schema.prisma            # Database schema
+│   ├── seed.ts                  # Database seeding
+│   └── migrations/              # Database migrations
+├── __tests__/                   # Test files
+├── public/                      # Static assets
+├── ARCHITECTURE.md              # System architecture
+├── CHANGELOG.md                 # Version history
+└── package.json                 # Dependencies
+
+```
+
+---
 
 ## 🧪 Testing Setup
 
@@ -106,11 +251,250 @@ Current coverage targets (can be enabled in jest.config.js):
 
 Tests automatically run on GitHub Actions for every push and pull request. See `.github/workflows/test.yml` for configuration.
 
-### Reflection
+---
 
-Unit testing ensures component reliability and prevents regressions. The security tests validate that XSS protection and input sanitization work correctly. Future work includes integration and E2E testing.
+## 🔐 Security Features
 
- errHandling
+- **Authentication:** JWT-based with Bcrypt password hashing
+- **Authorization:** Role-based access control (RBAC)
+- **Input Security:** XSS protection with DOMPurify and sanitize-html
+- **Database:** SQL injection prevention via Prisma
+- **File Security:** AWS S3 presigned URLs with time limits
+- **Environment:** Secure secrets management
+
+See [ARCHITECTURE.md](../ARCHITECTURE.md#6-security-features) for detailed security documentation.
+
+---
+
+## 📦 Tech Stack
+
+### Frontend
+- **Next.js 16** - React framework
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+- **React Hook Form** - Form management
+- **Zod** - Schema validation
+
+### Backend
+- **Next.js API Routes** - RESTful API
+- **Node.js** - Runtime
+- **TypeScript** - Type safety
+- **Prisma** - ORM
+- **PostgreSQL** - Primary database
+- **Redis** - Caching layer
+
+### Authentication & Security
+- **jose** - JWT handling
+- **bcrypt** - Password hashing
+- **DOMPurify** - HTML sanitization
+- **sanitize-html** - Rich text sanitization
+
+### Cloud & DevOps
+- **AWS S3** - File storage
+- **AWS/Azure** - Hosting options
+- **Docker** - Containerization
+- **GitHub Actions** - CI/CD
+
+### Testing
+- **Jest** - Test runner
+- **React Testing Library** - Component testing
+- **ts-jest** - TypeScript support
+
+---
+
+## 📝 Scripts
+
+```bash
+# Development
+npm run dev              # Start development server
+npm run build            # Build for production
+npm start                # Start production server
+
+# Code Quality
+npm run lint             # Run ESLint
+npm test                 # Run tests
+npm test -- --coverage   # Run tests with coverage
+npm run docs             # Show API docs location
+
+# Database
+npx prisma migrate dev   # Create migration
+npx prisma studio       # Open Prisma Studio
+npx prisma db seed      # Seed database
+```
+
+---
+
+## 🌍 Environment Variables
+
+Create a `.env` file with the following:
+
+```env
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/digital_cred
+
+# JWT
+JWT_SECRET=your-secret-key-here
+JWT_EXPIRY=24h
+
+# AWS
+AWS_ACCESS_KEY_ID=your-access-key
+AWS_SECRET_ACCESS_KEY=your-secret-key
+AWS_S3_BUCKET=your-bucket-name
+AWS_REGION=us-east-1
+
+# Redis (Optional)
+REDIS_URL=redis://localhost:6379
+
+# API
+API_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+See `ARCHITECTURE.md#8-environment-variables` for detailed configuration.
+
+---
+
+## 🚀 Deployment
+
+### Build for Production
+```bash
+npm run build
+npm start
+```
+
+### Deployment Options
+- **Vercel** - Recommended for Next.js
+- **AWS EC2** - For full control
+- **Azure App Service** - Microsoft ecosystem
+- **Docker** - Container orchestration
+
+See [ARCHITECTURE.md#7-deployment](../ARCHITECTURE.md#7-deployment) for detailed deployment instructions.
+
+---
+
+## 📊 Monitoring & Logging
+
+The application includes:
+- Request/response logging
+- Performance monitoring
+- Error tracking and reporting
+- Structured error codes
+- Debug information in development
+
+See [ARCHITECTURE.md#11-monitoring--logging](../ARCHITECTURE.md#11-monitoring--logging) for details.
+
+---
+
+## 💡 Reflection
+
+### Why Proper Documentation?
+
+Maintaining comprehensive documentation improves:
+- **Onboarding:** New developers understand the system faster
+- **Maintenance:** Complex logic is easier to understand
+- **Collaboration:** Team members stay aligned
+- **Debugging:** Issues are resolved more quickly
+- **Portfolio:** Shows professional software engineering practices
+
+### Key Documentation Components
+
+1. **Swagger/OpenAPI** - Interactive API documentation
+2. **ARCHITECTURE.md** - System design and components
+3. **CHANGELOG.md** - Version history and features
+4. **README.md** - Quick start guide
+5. **Inline Comments** - Complex logic explanation
+
+This project demonstrates enterprise-grade documentation practices.
+
+---
+
+## 🤝 Contributing
+
+1. Create a feature branch: `git checkout -b feature/your-feature`
+2. Write tests for new features
+3. Update documentation
+4. Submit a pull request
+5. Ensure CI/CD checks pass
+
+### Before Committing
+
+- [ ] Tests pass: `npm test`
+- [ ] Linting passes: `npm run lint`
+- [ ] Code is formatted: `prettier --write .`
+- [ ] Documentation updated
+- [ ] CHANGELOG.md updated
+
+---
+
+## 🐛 Reporting Issues
+
+Found a bug? Please create an issue with:
+- Clear description
+- Steps to reproduce
+- Expected vs actual behavior
+- Environment details
+- Screenshots if applicable
+
+---
+
+## 📄 License
+
+MIT License - See LICENSE file for details
+
+---
+
+## 📞 Support & Contact
+
+- **Email:** support@digitalcred.com
+- **Issues:** [GitHub Issues](https://github.com/your-repo/issues)
+- **Documentation:** [ARCHITECTURE.md](../ARCHITECTURE.md)
+- **API Docs:** [Swagger UI](http://localhost:3000/api/docs) (when running)
+
+---
+
+## 🎯 Getting Help
+
+### Common Issues
+
+**Port 3000 already in use?**
+```bash
+npm run dev -- -p 3001
+```
+
+**Database connection error?**
+- Check DATABASE_URL in .env
+- Ensure PostgreSQL is running
+- Verify credentials
+
+**Redis connection error?**
+- Redis is optional
+- Set REDIS_URL if using Redis
+- Application works without Redis
+
+**API docs not loading?**
+- Ensure development server is running
+- Visit [http://localhost:3000/api/docs](http://localhost:3000/api/docs)
+- Check browser console for errors
+
+### Learning Resources
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Prisma Docs](https://www.prisma.io/docs/)
+- [Swagger/OpenAPI](https://swagger.io/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+
+---
+
+## 📈 Roadmap
+
+See [CHANGELOG.md](../CHANGELOG.md#roadmap) for planned features and enhancements.
+
+---
+
+## 🎉 Acknowledgments
+
+Built with modern web technologies and best practices for scalability, security, and maintainability.
 ## Centralized Error Handling & Logging
 
 This application implements a centralized error handling and logging system to improve debugging, security, and maintainability.
